@@ -32,7 +32,6 @@ ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 //Vinay branch
 
 function App() {
-
   useEffect(() => {
     const interval = setInterval(async () => {
       if (window.OneSignal) {
@@ -54,8 +53,7 @@ function App() {
     }, 1000);
   }, []);
 
-
-
+  
   usePageTracking();
   return (
     <Routes>
