@@ -25,12 +25,37 @@ import PaymentSuccess from "./ExternalPages/PaymentSuccess.jsx";
 import ValentineShop from "./ExternalPages/ValentineShop.jsx";
 import ValentineCheckout from "./ExternalPages/ValentineCheckout.jsx";
 import ValentinePaymentSuccess from "./ExternalPages/ValentinePaymentSuccess.jsx";
+import { useEffect } from "react";
 
 ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 
 //Vinay branch
 
 function App() {
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (window.OneSignal) {
+        clearInterval(interval);
+
+        // Permission check
+        const permission = await window.OneSignal.Notifications.permission;
+        console.log("Permission:", permission);
+
+        if (permission === "granted") {
+          // 🔥 ACTUAL SUBSCRIBE STEP
+          await window.OneSignal.User.PushSubscription.optIn();
+          console.log("Subscribed");
+        } else {
+          // show prompt
+          window.OneSignal.showSlidedownPrompt();
+        }
+      }
+    }, 1000);
+  }, []);
+
+
+
   usePageTracking();
   return (
     <Routes>
