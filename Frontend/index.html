@@ -5,11 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="./public/favicon-16x16.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Corsolo</title>
+
+    <!-- OneSignal SDK -->
+    <script
+      src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+      defer
+    ></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function (OneSignal) {
+        await OneSignal.init({
+          appId: "387e7ec8-2115-4cb5-a5b6-62ce57d7590b",
+          notifyButton: { enable: false },
+          allowLocalhostAsSecureOrigin: true
+        });
+      });
+    </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
+    <!-- Google Ads -->
     <script
       async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5023649667798797"
