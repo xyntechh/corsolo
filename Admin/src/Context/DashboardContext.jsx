@@ -20,6 +20,8 @@ export const DashboardProvider = ({ children }) => {
   const [last7daysPayment, setlast7daysPayment] = useState([]);
   const [EbookStats, setEbookStats] = useState([]);
   const [recentEbookOrder, setrecentEbookOrder] = useState([]);
+  const [recentValentineOrder, setrecentValentineOrder] = useState({});
+  const [valentineAllOrder, setvalentineAllOrder] = useState([]);
 
   const navigate = useNavigate();
 
@@ -432,8 +434,65 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const getValentineOrder = async () => {
+    setLoading(true);
 
- 
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast.error("Unauthorized. Please login again.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/valentineDashboard/getValentineCard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res?.data?.success) {
+        setrecentValentineOrder(res?.data?.data);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getValentineOrderFunction = async () => {
+    setLoading(true);
+
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast.error("Unauthorized. Please login again.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/valentineDashboard/getAllValentineOrder`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res?.data?.success) {
+        setvalentineAllOrder(res?.data?.data);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <DashboardContext.Provider
@@ -465,7 +524,11 @@ export const DashboardProvider = ({ children }) => {
         geteBookDashboardStats,
         EbookStats,
         getRecentEbookOrderFunction,
-        recentEbookOrder
+        recentEbookOrder,
+        recentValentineOrder,
+        getValentineOrder,
+        valentineAllOrder,
+        getValentineOrderFunction,
       }}
     >
       {children}

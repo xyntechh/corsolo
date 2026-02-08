@@ -20,6 +20,7 @@ const userDashboard = require("./routes/AdminRoutes/user.routes.js")
 const partnerDashbord = require("./routes/AdminRoutes/partner.routes.js")
 const paymentDashboard = require("./routes/AdminRoutes/payment.routes.js")
 const EbookRoutes = require("./routes/AdminRoutes/eBook.routes.js")
+const valentineRoutes = require("./routes/AdminRoutes/valentine.routes.js")
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use("/api/userDashboard", userDashboard)
 app.use("/api/partnerDashboard", partnerDashbord)
 app.use("/api/paymentDashboard", paymentDashboard)
 app.use("/api/eBookDashboard", EbookRoutes)
+app.use("/api/valentineDashboard", valentineRoutes)
 
 
 server.listen(5000, () => {

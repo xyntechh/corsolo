@@ -5,7 +5,8 @@ import {
   DollarSign,
   Handshake,
   LogOut,
-  Notebook
+  Notebook,
+  Heart
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -45,6 +46,13 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: "eBook",
       icon: Notebook,
       link: "/dashboard/eBook",
+    },
+
+    {
+      id: "valentine",
+      label: "Valentine",
+      icon: Heart,
+      link: "/dashboard/valentine",
     },
   ];
 

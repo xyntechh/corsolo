@@ -13,6 +13,7 @@ import SignupUsersList from "./Components/SignupUsersList";
 import SignupUserDetails from "./Components/SignupUserDetails";
 import Payment from "./Pages/Payment ";
 import Ebook from "./Pages/Ebook";
+import Valentine from "./Pages/Valentine";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="signUpUserDetails" element={<SignupUserDetails />} />
         <Route path="payment" element={<Payment />} />
         <Route path="eBook" element={<Ebook />} />
+        <Route path="valentine" element={<Valentine />} />
       </Route>
     </Routes>
   );
