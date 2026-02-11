@@ -11,25 +11,13 @@ import {
   CreditCard,
   Calendar,
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { useDashboard } from "../Context/DashboardContext";
 
 const Ebook = () => {
   const {
-    paymentDashboardStats,
     getPaymentDashboardStatsFunction,
     getRecentPaymentDetailsFunction,
-    recentPayment,
     getLast7DaysPaymentGraph,
-    last7daysPayment,
     geteBookDashboardStats,
     EbookStats,
     getRecentEbookOrderFunction,
@@ -167,7 +155,7 @@ const Ebook = () => {
                     </div>
                     <div
                       className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                        ebook?.Status === "SUCCESS"
+                        ebook?.Status === "COMPLETED"
                           ? "bg-green-500"
                           : "bg-orange-400"
                       }`}
@@ -181,7 +169,7 @@ const Ebook = () => {
                       </h4>
                       <span
                         className={`px-2 py-0.5 text-xs font-semibold rounded-lg flex-shrink-0 ${
-                          ebook?.Status === "SUCCESS"
+                          ebook?.Status === "COMPLETED"
                             ? "bg-green-100 text-green-600"
                             : "bg-orange-100 text-orange-600"
                         }`}
@@ -206,6 +194,20 @@ const Ebook = () => {
                       <span className="text-xs text-gray-400">Amount</span>
                       <span className="font-bold text-gray-900 flex items-center">
                         199
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <IndianRupee className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-400">Email</span>
+                      <span className="font-bold text-gray-900 flex items-center">
+                        {ebook?.email}
+                        
                       </span>
                     </div>
                   </div>
