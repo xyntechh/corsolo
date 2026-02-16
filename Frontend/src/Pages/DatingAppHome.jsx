@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import Ebook from "../Banner/Ebook";
 import ValentineAdPopup from "../Banner/ValentineAdPopup";
+import EbookAdPopup from "../Banner/Ebookadpopup";
 
 export default function DatingAppHome() {
   const [coins, setCoins] = useState();
@@ -720,7 +721,7 @@ export default function DatingAppHome() {
           {showAddCoin && <AddCoin onClose={() => setShowAddCoin(false)} />}
         </div>
 
-        {showPopup && <ValentineAdPopup setShowPopup={setShowPopup} />}
+        {showPopup && <EbookAdPopup setShowPopup={setShowPopup} />}
       </div>
     </>
   );
