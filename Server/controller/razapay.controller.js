@@ -122,8 +122,6 @@ exports.razorWebhookooooooo = async (req, res) => {
 
 };
 
-
-
 exports.razorpayWebhook = async (req, res) => {
     try {
         const signature = req.headers["x-razorpay-signature"];
@@ -275,6 +273,8 @@ exports.razorWebhookforEbook = async (req, res) => {
     }
 
 };
+
+
 exports.createPaymentLinkForEBook = async (req, res) => {
 
     const userId = req.user?.userId
@@ -303,7 +303,7 @@ exports.createPaymentLinkForEBook = async (req, res) => {
             orderId
         });
 
-        const amount = 199; // Ebook price
+        const amount = 499; // Ebook price
         const plan = "Ebook Purchase";
 
         const options = {

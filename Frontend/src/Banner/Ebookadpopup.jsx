@@ -173,7 +173,7 @@ export default function EbookAdPopup({ setShowPopup }) {
             </div>
             <div className="text-right">
               <div className="flex items-baseline gap-1.5 justify-end">
-                <span style={{ fontFamily:"'Oswald',sans-serif",fontSize:28,fontWeight:800,color:"#fff",lineHeight:1 }}>₹199</span>
+                <span style={{ fontFamily:"'Oswald',sans-serif",fontSize:28,fontWeight:800,color:"#fff",lineHeight:1 }}>₹499</span>
                 <span style={{ fontSize:12,color:"#3a3a50",textDecoration:"line-through" }}>₹2,499</span>
               </div>
               <span className="inline-block px-2 py-0.5 rounded-full text-xs font-bold" style={{ background:"linear-gradient(90deg,#15803d,#16a34a)",color:"#fff" }}>92% OFF</span>
