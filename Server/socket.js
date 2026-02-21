@@ -7,6 +7,12 @@ const { aiReply } = require("./services/gemini.service");
 let onlineUsers = new Map();
 let userTimers = new Map();
 let userRooms = new Map();
+let supportExecutives = new Map(); // executiveId -> socketId
+let supportRooms = new Map(); // userId -> room
+let executivePointer = 1;
+let waitingGirlRequests = new Map(); // userId -> timeout
+let busyExecutives = new Set(); // executiveId busy
+let girlRooms = new Map(); // userId -> room
 
 module.exports = (server) => {
   const io = new Server(server, {
@@ -19,6 +25,12 @@ module.exports = (server) => {
     pingTimeout: 60000,
     pingInterval: 25000
   });
+
+
+  async function addToRandomQueue(socket, userId, lookingFor) {
+    socket.emit("startRandomQueue", { userId, lookingFor });
+  }
+
 
   io.on("connection", (socket) => {
     console.log("✅ User connected:", socket.id);
@@ -284,6 +296,29 @@ module.exports = (server) => {
             }
           }
 
+        } else if (room.startsWith("support-")) {
+          console.log("🧑‍💼 Support message");
+
+          await Chat.create({
+            chatRoom: room,
+            sender,
+            reciver,
+            message,
+            type,
+            duration: duration || 0,
+            isAI: false,
+            timestamp: messageTimestamp
+          });
+
+          io.to(room).emit("receiveMessage", {
+            sender: sender.toString(),
+            message,
+            type,
+            duration: duration || 0,
+            timestamp: messageTimestamp
+          });
+
+          return;
         } else {
           console.log("👥 User-to-user message");
 
@@ -333,6 +368,18 @@ module.exports = (server) => {
           message: "Your chat partner has left"
         });
 
+
+        if (!room.startsWith("support-")) {
+          socket.to(room).emit("partnerLeft", {
+            message: "Your chat partner has left"
+          });
+        }
+
+
+        if (room && room.startsWith("girl-")) {
+          busyExecutives.delete(userId.toString());
+        }
+
         console.log("✅ User left and partner notified");
 
       } catch (error) {
@@ -354,7 +401,7 @@ module.exports = (server) => {
         }
 
         const partnerSocket = io.sockets.sockets.get(partnerSocketId);
-        
+
         if (!partnerSocket) {
           socket.emit("callFailed", { message: "User disconnected" });
           console.log("❌ Partner socket not found");
@@ -379,7 +426,7 @@ module.exports = (server) => {
     socket.on("acceptCall", ({ room, answer }) => {
       try {
         console.log("✅ Call accepted in room:", room);
-        
+
         socket.join(room);
         socket.to(room).emit("callAccepted", { answer });
 
@@ -394,7 +441,7 @@ module.exports = (server) => {
     socket.on("rejectCall", ({ room }) => {
       try {
         console.log("❌ Call rejected in room:", room);
-        
+
         socket.to(room).emit("callRejected");
 
       } catch (error) {
@@ -406,7 +453,7 @@ module.exports = (server) => {
     socket.on("endCall", ({ room }) => {
       try {
         console.log("📞 Call ended in room:", room);
-        
+
         socket.to(room).emit("callEnded");
 
       } catch (error) {
@@ -418,11 +465,154 @@ module.exports = (server) => {
     socket.on("webrtcSignal", ({ room, data }) => {
       try {
         console.log("📡 WebRTC signal in room:", room, "Type:", data.type);
-        
+
         socket.to(room).emit("webrtcSignal", { data });
 
       } catch (error) {
         console.error("❌ webrtcSignal error:", error);
+      }
+    });
+
+
+    // ==================== EXECUTIVE ONLINE ====================
+    socket.on("executiveOnline", ({ executiveId }) => {
+      console.log("🧑‍💼 Executive online:", executiveId);
+      supportExecutives.set(executiveId.toString(), socket.id);
+      busyExecutives.delete(executiveId.toString()); // mark free
+    });
+
+
+    // ==================== PAID GIRL CHAT REQUEST ====================
+    socket.on("requestGirlChat", ({ userId, lookingFor = "female" }) => {
+      console.log("💘 Girl chat requested:", userId);
+
+      const freeExecutives = [...supportExecutives.entries()]
+        .filter(([id]) => !busyExecutives.has(id));
+
+      // no executive online
+      if (freeExecutives.length === 0) {
+        console.log("⚠️ No executive free -> fallback random");
+        socket.emit("girlNotAvailable");
+        socket.emit("joinQueue", { userId, lookingFor });
+        console.log("🎲 Added to random queue:", userId);
+        return;
+      }
+
+      // notify all free executives dashboard
+      freeExecutives.forEach(([execId, sockId]) => {
+        const execSocket = io.sockets.sockets.get(sockId);
+        if (execSocket) {
+          execSocket.emit("incomingGirlRequest", { userId });
+        }
+      });
+
+      socket.emit("searchingGirl");
+
+      // 20 sec fallback
+      const timer = setTimeout(() => {
+        console.log("⌛ No one accepted -> random", userId);
+        waitingGirlRequests.delete(userId.toString());
+        socket.emit("girlNotAvailable");
+        socket.emit("joinQueue", { userId, lookingFor });
+      }, 20000);
+
+      waitingGirlRequests.set(userId.toString(), timer);
+    });
+
+
+    // ==================== EXECUTIVE ACCEPT GIRL CHAT ====================
+    socket.on("acceptGirlChat", ({ executiveId, userId }) => {
+      try {
+        console.log("❤️ Executive accepted:", executiveId, "User:", userId);
+
+        if (!waitingGirlRequests.has(userId.toString())) {
+          console.log("⛔ Already taken by another executive");
+          return;
+        }
+
+        // cancel fallback timer
+        const timer = waitingGirlRequests.get(userId.toString());
+        if (timer) {
+          clearTimeout(timer);
+          waitingGirlRequests.delete(userId.toString());
+        }
+
+        busyExecutives.add(executiveId.toString());
+
+        const userSocketId = onlineUsers.get(userId.toString());
+        if (!userSocketId) return;
+
+        const userSocket = io.sockets.sockets.get(userSocketId);
+        if (!userSocket) return;
+
+        const room = `girl-${userId}-${Date.now()}`;
+        girlRooms.set(userId.toString(), room);
+
+        socket.join(room);
+        userSocket.join(room);
+
+        userRooms.set(userId.toString(), room);
+        userRooms.set(executiveId.toString(), room);
+
+        userSocket.emit("girlChatStarted", { room, executiveId });
+        socket.emit("girlChatStarted", { room, userId });
+
+        console.log("✅ Girl chat connected:", room);
+
+      } catch (err) {
+        console.log("acceptGirlChat error", err);
+      }
+    });
+
+    // ==================== START SUPPORT CHAT ====================
+    socket.on("startSupportChat", async ({ userId }) => {
+      try {
+        console.log("📞 User requesting support:", userId);
+
+
+
+        const executives = [...supportExecutives.entries()];
+        if (executives.length === 0) {
+          socket.emit("noExecutive", { message: "No support available" });
+          return;
+        }
+
+        const executiveEntry = executives[executivePointer % executives.length];
+        executivePointer++;
+        if (!executiveEntry) {
+          socket.emit("noExecutive", { message: "No support available" });
+          return;
+        }
+
+        const [executiveId, executiveSocketId] = executiveEntry;
+        const room = `support-${userId}`;
+
+        supportRooms.set(userId.toString(), room);
+
+        userRooms.set(userId.toString(), room);
+        userRooms.set(executiveId.toString(), room);
+
+        socket.join(room);
+
+        const executiveSocket = io.sockets.sockets.get(executiveSocketId);
+        if (!executiveSocket) {
+          socket.emit("noExecutive", { message: "Executive disconnected" });
+          return;
+        }
+
+        executiveSocket.join(room);
+
+        socket.emit("supportConnected", { room, executiveId });
+
+        executiveSocket.emit("newSupportChat", {
+          room,
+          userId
+        });
+
+        console.log("✅ Support room created:", room);
+
+      } catch (err) {
+        console.log("❌ startSupportChat error", err);
       }
     });
 
@@ -439,6 +629,21 @@ module.exports = (server) => {
           }
         });
 
+        for (const [execId, sockId] of supportExecutives.entries()) {
+          if (sockId === socket.id) {
+            console.log("🧑‍💼 Executive offline:", execId);
+            supportExecutives.delete(execId);
+            busyExecutives.delete(execId); // ADD THIS
+          }
+        }
+
+
+        const girlTimer = waitingGirlRequests.get(disconnectedUserId);
+        if (girlTimer) {
+          clearTimeout(girlTimer);
+          waitingGirlRequests.delete(disconnectedUserId);
+        }
+
         if (disconnectedUserId) {
           console.log("👤 Disconnected user:", disconnectedUserId);
 
@@ -447,7 +652,7 @@ module.exports = (server) => {
             socket.to(room).emit("partnerLeft", {
               message: "Your chat partner disconnected"
             });
-            
+
             socket.to(room).emit("callEnded");
           }
 
@@ -472,6 +677,11 @@ module.exports = (server) => {
       } catch (error) {
         console.error("❌ Disconnect error:", error);
       }
+    });
+
+    socket.on("joinSupportRoom", ({ room }) => {
+      console.log("🧑‍💼 Executive rejoined:", room);
+      socket.join(room);
     });
 
   });
