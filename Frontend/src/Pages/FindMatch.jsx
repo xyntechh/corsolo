@@ -13,8 +13,6 @@ function FindMatch() {
   const params = new URLSearchParams(location.search);
   const mode = params.get("mode") || "random";
 
-
-
   const [screen, setScreen] = useState("loading");
   const [room, setRoom] = useState(null);
   const [partner, setPartner] = useState(null);
@@ -44,25 +42,42 @@ function FindMatch() {
     if (mode === "boys") lookingFor = "male";
     if (mode === "random") lookingFor = "random";
 
-
-    console.log("userid", userId , "looking for", lookingFor )
+    console.log("userid", userId, "looking for", lookingFor);
 
     // Wait for socket connection
-    const joinQueue = () => {
-      console.log("📤 Emitting joinQueue with userId:", userId);
+    const startMatching = () => {
+      // 🟣 PAID GIRLS CHAT
+      if (mode === "girls") {
+        console.log("💰 Paid chat requested");
+
+        socket.emit("requestGirlChat", {
+          userId,
+          lookingFor: "female",
+        });
+
+        return;
+      }
+
+      // 🟢 NORMAL MATCHMAKING
+      console.log("🎲 Random/Boys matchmaking");
+
       socket.emit("joinQueue", {
-        userId: userId,
-        lookingFor: lookingFor,
+        userId,
+        lookingFor,
       });
     };
 
-    // If already connected, join immediately
-    if (socket.connected) {
-      joinQueue();
-    } else {
-      // Wait for connection
-      socket.on("connect", joinQueue);
-    }
+    if (socket.connected) startMatching();
+    else socket.on("connect", startMatching);
+
+    socket.on("startRandomQueue", ({ userId, lookingFor }) => {
+      console.log("↩️ Falling back to random");
+
+      socket.emit("joinQueue", {
+        userId,
+        lookingFor,
+      });
+    });
 
     // ✅ Listen for queue status
     const handleQueueStatus = (data) => {
@@ -144,6 +159,16 @@ function FindMatch() {
       alert(data.message || "An error occurred");
     };
 
+    // ✅ Listen
+    const girlNotAvailable = (data) => {
+      console.log("⚠️ Girl chat not available, falling back to random", data);
+
+      socket.emit("joinQueue", {
+        userId,
+        lookingFor: "random",
+      });
+    };
+
     // Register all listeners
     socket.on("queueStatus", handleQueueStatus);
     socket.on("matchFound", handleMatchFound);
@@ -151,17 +176,19 @@ function FindMatch() {
     socket.on("chatReady", handleChatReady);
     socket.on("partnerLeft", handlePartnerLeft);
     socket.on("error", handleError);
+    socket.on("girlNotAvailable", girlNotAvailable); // Reuse queue status handler
 
     // Cleanup
     return () => {
       console.log("🧹 FindMatch: Cleaning up");
-      socket.off("connect", joinQueue);
-      socket.off("queueStatus", handleQueueStatus);
-      socket.off("matchFound", handleMatchFound);
-      socket.off("aiChatStart", handleAiChatStart);
-      socket.off("chatReady", handleChatReady);
-      socket.off("partnerLeft", handlePartnerLeft);
-      socket.off("error", handleError);
+      socket.removeAllListeners("queueStatus");
+      socket.removeAllListeners("matchFound");
+      socket.removeAllListeners("aiChatStart");
+      socket.removeAllListeners("chatReady");
+      socket.removeAllListeners("partnerLeft");
+      socket.removeAllListeners("error");
+      socket.removeAllListeners("startRandomQueue");
+      socket.removeAllListeners("girlChatStarted");
     };
   }, []); // Empty dependency - run once
 

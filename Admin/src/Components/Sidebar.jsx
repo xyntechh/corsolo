@@ -6,7 +6,7 @@ import {
   Handshake,
   LogOut,
   Notebook,
-  Heart
+  Heart,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -53,6 +53,13 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: "Valentine",
       icon: Heart,
       link: "/dashboard/valentine",
+    },
+
+    {
+      id: "executive",
+      label: "Executive",
+      icon: Users,
+      link: "/dashboard/executive",
     },
   ];
 

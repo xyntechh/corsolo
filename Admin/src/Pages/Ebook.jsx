@@ -193,7 +193,7 @@ const Ebook = () => {
                     <div className="flex flex-col">
                       <span className="text-xs text-gray-400">Amount</span>
                       <span className="font-bold text-gray-900 flex items-center">
-                        199
+                        499
                       </span>
                     </div>
                   </div>
@@ -207,7 +207,6 @@ const Ebook = () => {
                       <span className="text-xs text-gray-400">Email</span>
                       <span className="font-bold text-gray-900 flex items-center">
                         {ebook?.email}
-                        
                       </span>
                     </div>
                   </div>

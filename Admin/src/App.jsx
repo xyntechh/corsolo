@@ -14,8 +14,36 @@ import SignupUserDetails from "./Components/SignupUserDetails";
 import Payment from "./Pages/Payment ";
 import Ebook from "./Pages/Ebook";
 import Valentine from "./Pages/Valentine";
+import { useEffect } from "react";
+import { socket } from "./socket";
+import { jwtDecode } from "jwt-decode";
+import ExecutiveChatRoom from "./Pages/ExecutiveChatRoom";
 
 function App() {
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    const decoded = jwtDecode(token);
+    const executiveId = decoded.userId;
+
+    console.log("Decoded JWT:", decoded);
+
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("🟢 Executive Connected:", executiveId);
+
+      socket.emit("executiveOnline", { executiveId });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔴 Executive Disconnected");
+    });
+
+    return () => socket.disconnect();
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<AdminLogin />} />
@@ -30,6 +58,7 @@ function App() {
         <Route path="payment" element={<Payment />} />
         <Route path="eBook" element={<Ebook />} />
         <Route path="valentine" element={<Valentine />} />
+        <Route path="executive" element={<ExecutiveChatRoom />} />
       </Route>
     </Routes>
   );
