@@ -163,13 +163,12 @@ exports.razorpayWebhook = async (req, res) => {
         }
 
         else {
-            // course / coins
-            // Update user coins
+
+
+            console.log("PlanName", plan)
+
             const user = await User.findById(userId);
 
-
-
-            console.log("user RefferdBy:", user);
 
             // Update transaction
             const transaction = await Transaction.findByIdAndUpdate(
