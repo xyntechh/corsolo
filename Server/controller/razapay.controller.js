@@ -185,9 +185,9 @@ exports.razorpayWebhook = async (req, res) => {
             if (!user) return res.status(404).json({ message: "User not found" });
 
 
-            if (plan == "2") {
+            if (plan == "unlimited") {
 
-                user.coin = 9999999999
+                user.coin = (user.coin || 0) + 9999999999
                 await user.save();
 
 

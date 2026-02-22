@@ -29,7 +29,7 @@ export default function AddCoin({ onClose }) {
 
   const coinPackages = [
     {
-      id: 2,
+      id: "unlimited",
       coins: Infinity,
       price: 999,
       popular: true,
