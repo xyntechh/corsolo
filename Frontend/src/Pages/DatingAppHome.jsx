@@ -387,7 +387,7 @@ export default function DatingAppHome() {
             </div>
 
             <div>
-              <EndOfFebOffer />
+              <EndOfFebOffer   onClick={() => setShowAddCoin(true)} />
             </div>
 
             <div className="flex-1 px-4 flex flex-col overflow-hidden min-h-0">

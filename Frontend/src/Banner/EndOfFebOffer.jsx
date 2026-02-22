@@ -1,16 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { Flame, ArrowRight, Crown, Sparkles, Infinity } from "lucide-react";
 
-export default function EndOfFebOffer() {
+export default function EndOfFebOffer({ onClick }) {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() => navigate("/subscription")}
       className="relative cursor-pointer overflow-hidden rounded-2xl px-4 py-3 max-w-sm mx-auto select-none"
       style={{
-        background: "linear-gradient(135deg, #c850c0 0%, #9b59b6 30%, #8e44ad 60%, #e91e8c 100%)",
-        boxShadow: "0 6px 24px rgba(200,80,192,0.45), 0 2px 8px rgba(0,0,0,0.3)",
+        background:
+          "linear-gradient(135deg, #c850c0 0%, #9b59b6 30%, #8e44ad 60%, #e91e8c 100%)",
+        boxShadow:
+          "0 6px 24px rgba(200,80,192,0.45), 0 2px 8px rgba(0,0,0,0.3)",
         maxHeight: "10vh",
         display: "flex",
         alignItems: "center",
@@ -19,7 +20,10 @@ export default function EndOfFebOffer() {
       {/* Glow Orb */}
       <div
         className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)" }}
+        style={{
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
+        }}
       />
 
       {/* Left: Badge + Title */}
@@ -42,7 +46,11 @@ export default function EndOfFebOffer() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <Crown size={12} fill="#ffd700" style={{ color: "#ffd700", flexShrink: 0 }} />
+          <Crown
+            size={12}
+            fill="#ffd700"
+            style={{ color: "#ffd700", flexShrink: 0 }}
+          />
           <span className="text-white text-sm font-black leading-tight truncate">
             Unlimited Coins
           </span>
@@ -66,9 +74,12 @@ export default function EndOfFebOffer() {
           >
             ₹999
           </span>
-          <span className="text-[10px] text-purple-200 line-through">₹2499</span>
+          <span className="text-[10px] text-purple-200 line-through">
+            ₹2499
+          </span>
         </div>
         <button
+          onClick={onClick}
           className="flex items-center gap-1 text-white text-[11px] font-black px-3 py-1.5 rounded-full active:scale-95 transition-transform"
           style={{
             background: "linear-gradient(90deg, #ff3cac, #ff6a00)",
