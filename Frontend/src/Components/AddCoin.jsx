@@ -28,12 +28,18 @@ export default function AddCoin({ onClose }) {
   const { user, loading, setUser } = useUser(); //USER INFORMATION FROM USE CONTEXT
 
   const coinPackages = [
- 
+    {
+      id: 2,
+      coins: Infinity,
+      price: 999,
+      popular: true,
+      bonus: 0,
+    },
     {
       id: 3,
       coins: 149,
       price: 149,
-      popular: true,
+      popular: false,
       bonus: 0,
     },
     {
@@ -41,7 +47,6 @@ export default function AddCoin({ onClose }) {
       coins: 249,
       price: 249,
       popular: false,
-
     },
     {
       id: 5,
@@ -57,8 +62,7 @@ export default function AddCoin({ onClose }) {
       popular: false,
     },
 
-
-      {
+    {
       id: 7,
       coins: 999,
       price: 999,
@@ -74,6 +78,8 @@ export default function AddCoin({ onClose }) {
   ];
 
   const token = localStorage.getItem("authToken");
+
+  console.log(selectedPackage)
 
   const handlePurchase = async () => {
     try {
@@ -95,13 +101,13 @@ export default function AddCoin({ onClose }) {
         {
           plan: selectedPackage.id,
           email: user?.email,
-          amount: selectedPackage.price,
+          amount: selectedPackage.price, // Razorpay expects amount in paise
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       toast.success("Redirecting to payment...");
       // Redirect to payment URL

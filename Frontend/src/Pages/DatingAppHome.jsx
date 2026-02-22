@@ -17,6 +17,7 @@ import axios from "axios";
 import Ebook from "../Banner/Ebook";
 import ValentineAdPopup from "../Banner/ValentineAdPopup";
 import EbookAdPopup from "../Banner/Ebookadpopup";
+import EndOfFebOffer from "../Banner/EndOfFebOffer";
 
 export default function DatingAppHome() {
   const [coins, setCoins] = useState();
@@ -273,6 +274,8 @@ export default function DatingAppHome() {
 
       debitUserCoin(coin);
       navigate(`/chat?mode=${option}`);
+
+      console.log("coin deducted for", option);
       return;
     }
   };
@@ -384,7 +387,7 @@ export default function DatingAppHome() {
             </div>
 
             <div>
-              <Ebook />
+              <EndOfFebOffer />
             </div>
 
             <div className="flex-1 px-4 flex flex-col overflow-hidden min-h-0">

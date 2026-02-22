@@ -143,7 +143,7 @@ exports.razorpayWebhook = async (req, res) => {
         const notes = paymentLink.notes;
         const plan = notes.planName;
         const transactionId = notes.transactionId;
-          const userId = notes.userId;
+        const userId = notes.userId;
 
         console.log("Webhook Plan:", plan);
 
@@ -185,8 +185,21 @@ exports.razorpayWebhook = async (req, res) => {
 
             if (!user) return res.status(404).json({ message: "User not found" });
 
-            user.coin = (user.coin || 0) + transaction.amount;
-            await user.save();
+
+            if (plan === 2) {
+
+                user.coin = 9999999999
+                await user.save();
+
+
+
+            } else {
+                user.coin = (user.coin || 0) + transaction.amount;
+                await user.save();
+
+            }
+
+
 
 
             //update partner coins if refferdBy exists
