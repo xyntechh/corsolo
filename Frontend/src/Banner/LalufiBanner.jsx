@@ -12,27 +12,22 @@ export default function LalufiBanner() {
   }, []);
 
   return (
-    <div className="flex items-center justify-center p-3">
+    <div className="w-full px-2 py-1.5">
       <div
-        className="relative cursor-pointer overflow-hidden rounded-2xl shadow-2xl w-full max-w-xl hover:scale-[1.02] active:scale-95 transition-all duration-200"
+        className="relative cursor-pointer overflow-hidden rounded-2xl shadow-2xl w-full hover:scale-[1.01] active:scale-95 transition-all duration-200"
         style={{ border: "3px solid #000" }}
         onClick={() => window.open("https://lalufi.com/shop", "_blank")}
       >
-        {/* Hot Pink Gradient BG */}
+        {/* BG */}
         <div
           className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, #ff0090 0%, #ff4db8 35%, #cc00ee 100%)",
-          }}
+          style={{ background: "linear-gradient(135deg, #ff0090 0%, #ff4db8 35%, #cc00ee 100%)" }}
         />
 
-        {/* Diagonal Stripes */}
+        {/* Stripes */}
         <div
           className="absolute inset-0 opacity-[0.08]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(255,255,255,1) 14px, rgba(255,255,255,1) 28px)",
-          }}
+          style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(255,255,255,1) 14px, rgba(255,255,255,1) 28px)" }}
         />
 
         {/* Shimmer */}
@@ -46,60 +41,67 @@ export default function LalufiBanner() {
         />
 
         {/* Floating Emojis */}
-        <div className="absolute top-2 left-3 text-lg animate-bounce">💋</div>
-        <div className="absolute top-2 right-3 text-lg animate-bounce" style={{ animationDelay: "0.3s" }}>🔥</div>
-        <div className="absolute bottom-2 left-5 text-base animate-bounce" style={{ animationDelay: "0.6s" }}>💕</div>
-        <div className="absolute bottom-2 right-5 text-base animate-bounce" style={{ animationDelay: "0.9s" }}>✨</div>
+        <div className="absolute top-1.5 left-3 text-base animate-bounce">💋</div>
+        <div className="absolute top-1.5 right-3 text-base animate-bounce" style={{ animationDelay: "0.3s" }}>🔥</div>
+        <div className="absolute bottom-1.5 left-5 text-sm animate-bounce" style={{ animationDelay: "0.6s" }}>💕</div>
+        <div className="absolute bottom-1.5 right-5 text-sm animate-bounce" style={{ animationDelay: "0.9s" }}>✨</div>
 
         {/* Content */}
-        <div className="relative z-10 px-6 py-3 flex flex-col items-center gap-2 text-center">
+        <div className="relative z-10 px-5 py-2 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
 
-          {/* Top Badge */}
-          <div
-            className="text-xs font-black px-4 py-1 rounded-full text-white tracking-widest uppercase"
-            style={{
-              background: "rgba(0,0,0,0.3)",
-              border: "1.5px solid rgba(255,255,255,0.4)",
-            }}
-          >
-            🎉 India's Most Loved Adult Store
+          {/* Left: Badge + Headline + Subtext */}
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            {/* Badge */}
+            <div
+              className="self-center sm:self-start text-white font-black tracking-widest uppercase w-fit"
+              style={{
+                fontSize: "10px",
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                padding: "2px 10px",
+                borderRadius: "999px",
+              }}
+            >
+              🎉 India's Most Loved Adult Store
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="font-black text-white leading-tight"
+              style={{
+                fontSize: "clamp(1rem, 3.5vw, 1.6rem)",
+                textShadow: "2px 2px 0px #000, -1px -1px 0px #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                letterSpacing: "-0.3px",
+              }}
+            >
+              Wanna know what your{" "}
+              <span style={{ color: "#fff700" }}>faves are raving about? 😏</span>
+            </h1>
+
+            {/* Subtext */}
+            <p
+              className="text-white font-bold"
+              style={{ fontSize: "clamp(0.6rem, 1.5vw, 0.7rem)", textShadow: "1px 1px 1px #000" }}
+            >
+              💫 Premium Quality &nbsp;•&nbsp; 🚚 Discreet Delivery &nbsp;•&nbsp; 😍 10,000+ Happy Customers
+            </p>
           </div>
 
-          {/* Headline */}
-          <h1
-            className="font-black text-white leading-tight"
-            style={{
-              fontSize: "clamp(1.3rem, 4.5vw, 2rem)",
-              textShadow: "3px 3px 0px #000, -1px -1px 0px #000, 1px -1px 0 #000, -1px 1px 0 #000",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Wanna know what your{" "}
-            <span style={{ color: "#fff700" }}>faves are raving about? 😏</span>
-          </h1>
-
-          {/* Sub text */}
-          <p
-            className="text-white text-xs font-bold"
-            style={{ textShadow: "1px 1px 2px #000" }}
-          >
-            💫 Premium Quality &nbsp;•&nbsp; 🚚 Discreet Delivery &nbsp;•&nbsp; 😍 10,000+ Happy Customers
-          </p>
-
-          {/* CTA Button */}
+          {/* Right: CTA Button */}
           <div
-            className="w-full py-2.5 px-6 rounded-xl font-black flex items-center justify-center gap-2 shadow-xl"
+            className="shrink-0 font-black flex items-center justify-center gap-2 shadow-xl rounded-xl whitespace-nowrap"
             style={{
               background: "linear-gradient(90deg, #fff 0%, #ffe6f5 50%, #fff 100%)",
               border: "3px solid #000",
               color: "#cc0077",
-              fontSize: "clamp(0.95rem, 3vw, 1.15rem)",
+              fontSize: "clamp(0.8rem, 2.5vw, 1.05rem)",
+              padding: "8px 20px",
               letterSpacing: "0.5px",
             }}
           >
             <span>🛍️</span>
-            <span>SHOP NOW !</span>
-            <span className="font-black text-xl" style={{ color: "#ff0080" }}>→</span>
+            <span>SHOP NOW!</span>
+            <span style={{ color: "#ff0080", fontWeight: 900 }}>→</span>
           </div>
         </div>
       </div>
