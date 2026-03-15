@@ -75,7 +75,53 @@ function DefaultPage() {
       <div className="w-full max-w-md backdrop-blur-lg bg-purple-900/40 border border-purple-700 rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col justify-center gap-5">
         {/* GAMING BANNER */}
 
-        <LalufiBanner />
+        <div
+          onClick={handleTelegramClick}
+          className="relative cursor-pointer group overflow-hidden rounded-2xl border-2 border-blue-400 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-100"
+        >
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-sky-500 to-blue-600 animate-pulse"></div>
+
+          {/* Diagonal Stripes Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div
+              className="w-full h-full"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.5) 10px, rgba(255,255,255,0.5) 20px)",
+              }}
+            ></div>
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 p-3 flex flex-col items-center gap-2">
+            {/* Main Text */}
+            <div className="text-center">
+              <div className="flex gap-1.5 items-center justify-center mb-1">
+                <span className="text-2xl">📢</span>
+                <h2 className="text-lg sm:text-xl font-black text-white drop-shadow-lg tracking-wide">
+                  JOIN OUR TELEGRAM!
+                </h2>
+                <span className="text-2xl">✨</span>
+              </div>
+              <p className="text-blue-100 text-xs font-semibold mb-1.5">
+                Latest Updates • Tips & Tricks • Exclusive Content
+              </p>
+            </div>
+
+            {/* CTA Button */}
+            <div className="w-full bg-gradient-to-r from-white via-blue-50 to-white text-blue-600 font-black text-sm sm:text-base py-2 px-4 rounded-lg shadow-lg group-hover:shadow-blue-400/50 transition-all">
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="text-lg">📱</span>
+                <span>JOIN CHANNEL NOW</span>
+                <span>→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+        </div>
 
         <div className="flex flex-col gap-2">
           <h1 className="text-xl sm:text-2xl font-bold text-center text-white tracking-wide">

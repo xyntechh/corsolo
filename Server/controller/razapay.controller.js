@@ -315,7 +315,7 @@ exports.createPaymentLinkForEBook = async (req, res) => {
             orderId
         });
 
-        const amount = 499; // Ebook price
+        const amount = 299; // Ebook price
         const plan = "Ebook Purchase";
 
         const options = {
