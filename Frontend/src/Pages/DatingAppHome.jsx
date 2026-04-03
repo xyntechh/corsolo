@@ -19,6 +19,7 @@ import ValentineAdPopup from "../Banner/ValentineAdPopup";
 import EbookAdPopup from "../Banner/Ebookadpopup";
 import EndOfFebOffer from "../Banner/EndOfFebOffer";
 import HoliSpecialOffer from "../Banner/HoliSpecialOffer";
+import SummerSaleOffer from "../Banner/SummerSaleOffer";
 
 export default function DatingAppHome() {
   const [coins, setCoins] = useState();
@@ -388,7 +389,7 @@ export default function DatingAppHome() {
             </div>
 
             <div>
-              <HoliSpecialOffer   onClick={() => setShowAddCoin(true)} />
+              <SummerSaleOffer   onClick={() => setShowAddCoin(true)} />
             </div>
 
             <div className="flex-1 px-4 flex flex-col overflow-hidden min-h-0">
