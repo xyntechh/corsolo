@@ -32,6 +32,8 @@ export default function DatingAppHome() {
   const [showAddCoin, setShowAddCoin] = useState(false);
   const { user, loading, setUser, fetchUser } = useUser();
 
+  console.log(user);
+
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -388,9 +390,11 @@ export default function DatingAppHome() {
               </div>
             </div>
 
-            <div>
-              <SummerSaleOffer   onClick={() => setShowAddCoin(true)} />
-            </div>
+            {user?.coin <= 0 && (
+              <div>
+                <SummerSaleOffer onClick={() => setShowAddCoin(true)} />
+              </div>
+            )}
 
             <div className="flex-1 px-4 flex flex-col overflow-hidden min-h-0">
               <div className="text-center mb-1.5 flex-shrink-0">
