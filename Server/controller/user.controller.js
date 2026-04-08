@@ -2,6 +2,13 @@ const User = require("../models/user.model.js");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const Partner = require("../models/Partner.model.js")
+const sendEmail = require("../utility/sendEmail.js")
+const crypto = require("crypto");
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+
 
 // Secret key for JWT
 const JWT_SECRET = process.env.JWT_SECRET || "yoursupersecretkey";
@@ -356,6 +363,164 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+
+// FORGET PASSWORD AND RESET PASSWORD EMAIL LOGIC
+exports.forgetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    //  RANDOM TOKEN (better than direct JWT)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    //  SAVE IN DB
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
+
+    await user.save();
+
+    //  LINK
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const emailBody = `
+  <div style="font-family: Arial, sans-serif; background: #0f172a; padding: 20px;">
+    
+    <div style="max-width: 500px; margin: auto; background: linear-gradient(135deg, #6d28d9, #ec4899); padding: 2px; border-radius: 16px;">
+      
+      <div style="background: #1e293b; border-radius: 14px; padding: 30px; text-align: center;">
+        
+        <h2 style="color: #fff; margin-bottom: 10px;">
+          Reset Your Password
+        </h2>
+        
+        <p style="color: #cbd5f5; font-size: 14px;">
+          Hi ${user.name},<br/>
+          We received a request to reset your password.
+        </p>
+
+        <a href="${resetLink}" 
+           style="
+             display: inline-block;
+             margin-top: 20px;
+             padding: 12px 24px;
+             background: linear-gradient(90deg, #ec4899, #a855f7);
+             color: #000;
+             font-weight: bold;
+             text-decoration: none;
+             border-radius: 10px;
+           ">
+          Reset Password
+        </a>
+
+        <p style="color: #94a3b8; font-size: 12px; margin-top: 20px;">
+          This link will expire in 1 hour.
+        </p>
+
+        <p style="color: #64748b; font-size: 11px; margin-top: 10px;">
+          If you didn’t request this, you can safely ignore this email.
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+`;
+
+    await sendEmail(user.email, "Password Reset", emailBody);
+
+    return res.status(200).json({
+      success: true,
+      message: "Reset link sent",
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// RESET PASSWORD AND VERIFY TOKEN LOGIC
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params; // URL se aayega
+    const { password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and password are required",
+      });
+    }
+
+    //  HASH TOKEN (same as saved)
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    //  FIND USER
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }, // expiry check
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    //  HASH NEW PASSWORD
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    //  REMOVE TOKEN (single use)
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successful",
+    });
+
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+
 
 
 

@@ -26,6 +26,8 @@ import ValentineShop from "./ExternalPages/ValentineShop.jsx";
 import ValentineCheckout from "./ExternalPages/ValentineCheckout.jsx";
 import ValentinePaymentSuccess from "./ExternalPages/ValentinePaymentSuccess.jsx";
 import { useEffect } from "react";
+import ForgotPassword from "./Pages/ForgotPassword.jsx";
+import ResetPassword from "./Pages/ResetPassword.jsx";
 
 ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 
@@ -72,6 +74,8 @@ function App() {
       <Route path="/paymentSuccessEbook" element={<PaymentSuccess />} />
       <Route path="/valantine" element={<ValentineShop />} />
       <Route path="/valantineCheckOut" element={<ValentineCheckout />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route
         path="/valantinePaymentSuccess"
         element={<ValentinePaymentSuccess />}

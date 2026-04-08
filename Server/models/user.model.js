@@ -64,6 +64,9 @@ const userSchema = new mongoose.Schema(
             type: String
         },
 
+        resetPasswordToken: String,
+        resetPasswordExpire: Date,
+
 
         isOnline: { type: Boolean, default: false },
         socketId: String,

@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, updateUser, getUserInfo, debitUserCoin, login , signUp } = require("../controller/user.controller.js");
+const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, forgetPassword, resetPassword } = require("../controller/user.controller.js");
 const authMiddleware = require("../middleware/auth.js")
 const { findMatch } = require("../controller/match.controller.js");
-const { fetchMessages,  uploadChatMedia } = require("../controller/chat.controller.js");
+const { fetchMessages, uploadChatMedia } = require("../controller/chat.controller.js");
 const upload = require("../middleware/upload.js")
 
 router.post("/register", registerUser);
@@ -22,7 +22,15 @@ router.post('/debit', authMiddleware, debitUserCoin);
 
 router.post("/login", login)
 
-router.post("/signUp", signUp )
+router.post("/signUp", signUp)
+
+router.post("/forgetPassword", forgetPassword)
+
+router.post("/resetPassword/:token", resetPassword)
+
+
+
+
 
 
 router.post(

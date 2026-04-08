@@ -43,7 +43,7 @@ function Login() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ email, password }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -110,6 +110,13 @@ function Login() {
             className="p-3 rounded-xl bg-purple-800/70 placeholder-purple-300 text-white border border-purple-600 focus:border-purple-400 focus:ring-2 focus:ring-purple-500 outline-none transition"
             style={{ fontSize: "16px" }}
           />
+
+          <span
+            onClick={() => navigate("/forgot-password")}
+            className="text-pink-400 ml-2 text-sm hover:text-pink-300 cursor-pointer"
+          >
+            Forgot Password?
+          </span>
         </div>
 
         {/* Login Button */}
@@ -124,7 +131,6 @@ function Login() {
             "Login"
           )}
         </button>
-        
 
         {/* Signup Link */}
         <button
