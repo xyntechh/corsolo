@@ -37,15 +37,15 @@ export default function AddCoin({ onClose }) {
     },
     {
       id: 3,
-      coins: 149,
-      price: 149,
+      coins: 199,
+      price: 199,
       popular: false,
       bonus: 0,
     },
     {
       id: 4,
-      coins: 249,
-      price: 249,
+      coins: 299,
+      price: 299,
       popular: false,
     },
     {

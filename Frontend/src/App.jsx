@@ -28,6 +28,7 @@ import ValentinePaymentSuccess from "./ExternalPages/ValentinePaymentSuccess.jsx
 import { useEffect } from "react";
 import ForgotPassword from "./Pages/ForgotPassword.jsx";
 import ResetPassword from "./Pages/ResetPassword.jsx";
+import UserProfile from "./Pages/UserProfile.jsx";
 
 ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 
@@ -55,7 +56,6 @@ function App() {
     }, 1000);
   }, []);
 
-  
   usePageTracking();
   return (
     <Routes>
@@ -102,6 +102,15 @@ function App() {
         element={
           <ProtectedRoute>
             <DatingAppHome />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/Profile"
+        element={
+          <ProtectedRoute>
+            <UserProfile />
           </ProtectedRoute>
         }
       />

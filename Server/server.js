@@ -37,8 +37,12 @@ app.use(express.json());
 // Put middleware above routes
 app.use(prerender);
 app.use(cors({
-  origin: "*",
-  methods: "GET,POST,PUT,PATCH,DELETE",
+  origin: [
+    "http://localhost:5173",
+    "https://corsolo.com",
+    "https://www.corsolo.com"
+  ],
+  methods: ["GET","POST","PUT","PATCH","DELETE"],
   credentials: true
 }));
 
