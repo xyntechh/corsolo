@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { createPaymentLink, razorpayWebhook, createPaymentLinkForEBook, razorWebhookforEbook, createPaymentLinkForValantine, razorWebhookforValantine } = require("../controller/razapay.controller.js");
+const { createPaymentLink, razorpayWebhook, createPaymentLinkForEBook, razorWebhookforEbook, createPaymentLinkForValantine, createPaymentLinkCashFreee, razorWebhookforValantine } = require("../controller/razapay.controller.js");
 const authMiddleware = require("../middleware/auth.js")
 
 const router = express.Router();
@@ -29,6 +29,7 @@ router.post(
 router.post("/razorpay/payment-link", authMiddleware, createPaymentLink);
 router.post("/razorpay/ebook-payment-link", createPaymentLinkForEBook);
 router.post("/razorpay/valentine-payment-link", createPaymentLinkForValantine);
+router.post("/cashfree/payment-link", createPaymentLinkCashFreee);
 
 
 

@@ -179,7 +179,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       });
 
       await peerConnectionRef.current.setRemoteDescription(
-        new RTCSessionDescription(offer)
+        new RTCSessionDescription(offer),
       );
 
       const answer = await peerConnectionRef.current.createAnswer();
@@ -214,7 +214,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       console.log(res.data);
@@ -294,7 +294,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
       if (peerConnectionRef.current) {
         await peerConnectionRef.current.setRemoteDescription(
-          new RTCSessionDescription(answer)
+          new RTCSessionDescription(answer),
         );
 
         while (iceCandidatesQueue.current.length > 0) {
@@ -322,7 +322,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
           peerConnectionRef.current.remoteDescription
         ) {
           await peerConnectionRef.current.addIceCandidate(
-            new RTCIceCandidate(data.candidate)
+            new RTCIceCandidate(data.candidate),
           );
         } else {
           iceCandidatesQueue.current.push(new RTCIceCandidate(data.candidate));
@@ -360,12 +360,14 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
       const isSentByMe = msg.sender?.toString() === myId;
 
+      const isObjectMessage = typeof msg.message === "object";
+
       const newMsg = {
         id: Date.now() + Math.random(),
-        text: msg.message || "",
-        mediaUrl: msg.message || null,
+        text: isObjectMessage ? "" : msg.message || "",
+        mediaUrl: isObjectMessage ? msg.message.url : msg.message || null,
         type: isSentByMe ? "sent" : "received",
-        contentType: msg.type || "text",
+        contentType: msg.type || (isObjectMessage ? msg.message.type : "text"),
         sender: msg.sender,
         time: getCurrentTime(),
         timestamp: msg.timestamp || Date.now(),
@@ -428,12 +430,12 @@ function ChatUI({ userData, partnerData, room, isAI }) {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data?.success && response.data?.url) {
         toast.success(
-          `${mediaType === "image" ? "Image" : "Voice note"} sent!`
+          `${mediaType === "image" ? "Image" : "Voice note"} sent!`,
         );
         return {
           success: true,
@@ -1107,8 +1109,8 @@ function ChatUI({ userData, partnerData, room, isAI }) {
                 isUploading
                   ? "Uploading..."
                   : partnerLeft
-                  ? "Chat ended"
-                  : "Type a message..."
+                    ? "Chat ended"
+                    : "Type a message..."
               }
               disabled={!room || partnerLeft || isUploading}
               className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-purple-900/50 text-white text-xs sm:text-sm placeholder-purple-300/70 border border-purple-700/50 focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"

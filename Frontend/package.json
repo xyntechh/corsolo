@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cashfreepayments/cashfree-js": "^1.0.7",
     "axios": "^1.13.2",
+    "cashfree-pg": "^6.0.4",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",

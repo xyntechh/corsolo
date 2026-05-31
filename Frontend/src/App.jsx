@@ -30,6 +30,12 @@ import ForgotPassword from "./Pages/ForgotPassword.jsx";
 import ResetPassword from "./Pages/ResetPassword.jsx";
 import UserProfile from "./Pages/UserProfile.jsx";
 
+//confession routes
+import ConfessionMainPage from "./Confession/ConfessionMainPage.jsx";
+import CreateConfession from "./Confession/CofessionComponents/CreateConfessionModal.jsx";
+import ConfessionNotification from "./Confession/CofessionComponents/NotificationsPage.jsx";
+import MyProfilePage from "./Confession/CofessionComponents/MyProfilePage.jsx";
+
 ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 
 //Vinay branch
@@ -76,9 +82,44 @@ function App() {
       <Route path="/valantineCheckOut" element={<ValentineCheckout />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+
       <Route
         path="/valantinePaymentSuccess"
         element={<ValentinePaymentSuccess />}
+      />
+
+      <Route
+        path="/confession"
+        element={
+          <ProtectedRoute>
+            <ConfessionMainPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/confession/create"
+        element={
+          <ProtectedRoute> 
+            <CreateConfession />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/confession/notifications"
+        element={
+          <ProtectedRoute>
+            <ConfessionNotification />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/confession/profile"
+        element={
+          <ProtectedRoute>
+            <MyProfilePage />
+          </ProtectedRoute>
+        }
       />
 
       <Route

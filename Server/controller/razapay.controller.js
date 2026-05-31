@@ -315,7 +315,7 @@ exports.createPaymentLinkForEBook = async (req, res) => {
             orderId
         });
 
-        const amount = 299; // Ebook price
+        const amount = 499; // Ebook price
         const plan = "Ebook Purchase";
 
         const options = {
@@ -471,3 +471,206 @@ exports.createPaymentLinkForValantine = async (req, res) => {
     }
 };
 
+
+
+
+
+
+// CREATE PAYMENT LINK
+exports.createPaymentLinkCashFreee = async (req, res) => {
+
+    const userId = req.user?.userId;
+
+    const { amount, email, plan } = req.body;
+
+    try {
+
+        if (!amount || !email || !plan) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill all details"
+            });
+        }
+
+        // CREATE TRANSACTION
+        const transaction = await Transaction.create({
+            email,
+            amount,
+            plan,
+            transactionType: "PENDING",
+            userId
+        });
+
+        // CASHFREE API CALL
+        const response = await fetch(
+            "https://api.cashfree.com/pg/links",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-client-id": process.env.CASHFREE_APP_ID,
+                    "x-client-secret":
+                        process.env.CASHFREE_SECRET_KEY,
+                    "x-api-version": "2023-08-01"
+                },
+
+                body: JSON.stringify({
+
+                    customer_details: {
+                        customer_name: "Corsolo User",
+                        customer_email: email,
+                        customer_phone: "9999999999"
+                    },
+
+                    link_amount: amount,
+
+                    link_currency: "INR",
+
+                    link_purpose: `Payment for ${plan}`,
+
+                    link_id: `corsolo_${Date.now()}`,
+
+                    link_notify: {
+                        send_sms: false,
+                        send_email: true
+                    },
+
+                    link_meta: {
+                        return_url:
+                            "https://www.corsolo.com/home?order_id={order_id}"
+                    }
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log(data);
+
+        if (!response.ok) {
+            return res.status(400).json({
+                success: false,
+                error: data
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+
+            paymentLinkId: data.link_id,
+
+            url: data.link_url,
+
+            transactionId: transaction._id,
+
+            userId
+        });
+
+    } catch (error) {
+
+        console.log("Payment Link Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+};
+
+
+
+// CASHFREE WEBHOOK
+exports.cashfreeWebhook = async (req, res) => {
+
+    try {
+
+        const signature =
+            req.headers["x-webhook-signature"];
+
+        const timestamp =
+            req.headers["x-webhook-timestamp"];
+
+        const webhookSecret =
+            process.env.CASHFREE_WEBHOOK_SECRET;
+
+        // VERIFY SIGNATURE
+        const signedPayload =
+            timestamp + JSON.stringify(req.body);
+
+        const expectedSignature = crypto
+            .createHmac("sha256", webhookSecret)
+            .update(signedPayload)
+            .digest("base64");
+
+        if (signature !== expectedSignature) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Signature"
+            });
+        }
+
+        const event = req.body.type;
+
+        // PAYMENT SUCCESS
+        if (event === "PAYMENT_LINK_PAID") {
+
+            const paymentData = req.body.data;
+
+            console.log(paymentData);
+
+            const orderId =
+                paymentData.link_id;
+
+            // FIND TRANSACTION
+            const transaction =
+                await Transaction.findOne({
+                    transactionType: "PENDING"
+                }).sort({ createdAt: -1 });
+
+            if (!transaction) {
+                return res.json({
+                    success: false,
+                    message: "Transaction not found"
+                });
+            }
+
+            // UPDATE TRANSACTION
+            transaction.transactionType = "SUCCESS";
+
+            transaction.paymentId =
+                paymentData.cf_payment_id;
+
+            await transaction.save();
+
+            // UPDATE USER
+            await User.findByIdAndUpdate(
+                transaction.userId,
+                {
+                    $inc: {
+                        coins: Number(transaction.amount)
+                    }
+                }
+            );
+
+            return res.json({
+                success: true,
+                message:
+                    "Payment verified successfully"
+            });
+        }
+
+        return res.json({
+            success: true
+        });
+
+    } catch (error) {
+
+        console.log("Webhook Error:", error);
+
+        return res.status(500).json({
+            success: false
+        });
+    }
+};

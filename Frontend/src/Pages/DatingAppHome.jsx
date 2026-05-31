@@ -385,6 +385,7 @@ export default function DatingAppHome() {
                   <span className="text-white font-bold text-xs">{coins}</span>
                 </div>
                 <div 
+                onClick={ () => navigate("/profile") }
                 className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-2 border-white shadow-lg flex items-center justify-center text-xl cursor-pointer active:scale-95 transition-transform">
                   👤
                 </div>

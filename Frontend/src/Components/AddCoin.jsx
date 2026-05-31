@@ -17,6 +17,7 @@ import EmailPopup from "./EmailPopup";
 import { useUser } from "../Context/UserContext";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { load } from "@cashfreepayments/cashfree-js";
 
 export default function AddCoin({ onClose }) {
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -79,7 +80,10 @@ export default function AddCoin({ onClose }) {
 
   const token = localStorage.getItem("authToken");
 
-  console.log(selectedPackage)
+  console.log(selectedPackage);
+
+
+  console.log("user?.email", user?.email);
 
   const handlePurchase = async () => {
     try {
@@ -117,6 +121,54 @@ export default function AddCoin({ onClose }) {
       }
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/cashfree/cashfree/payment-link`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({
+            amount: selectedPackage.price,
+            email: user?.email,
+            plan: selectedPackage.id,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      console.log("Payment Response:", data);
+
+      if (!data.success) {
+        toast.error(data.message || "Payment Failed");
+
+        return;
+      }
+
+      // LOAD CASHFREE SDK
+      const cashfree = await load({
+        mode: "sandbox",
+      });
+
+      // OPEN PAYMENT MODAL
+      cashfree.checkout({
+        paymentSessionId: data.payment_session_id,
+
+        redirectTarget: "_modal",
+      });
+    } catch (error) {
+      console.log(error);
+
       toast.error("Something went wrong");
     }
   };
@@ -274,7 +326,7 @@ export default function AddCoin({ onClose }) {
         {/* Purchase Button - Fixed at bottom */}
         <div className="p-4 sm:p-5 pt-0 bg-white">
           <button
-            onClick={handlePurchase}
+            onClick={handlePayment}
             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-3.5 rounded-xl font-bold text-sm sm:text-base hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
           >
             <Heart size={18} fill="white" />

@@ -22,6 +22,9 @@ const paymentDashboard = require("./routes/AdminRoutes/payment.routes.js")
 const EbookRoutes = require("./routes/AdminRoutes/eBook.routes.js")
 const valentineRoutes = require("./routes/AdminRoutes/valentine.routes.js")
 
+
+const cashFreeRoutes = require("./routes/cashFree.Routes.js")
+
 const app = express();
 
 
@@ -30,6 +33,8 @@ const app = express();
 app.post("/api/payment",
   bodyParser.raw({ type: "application/json" })
 );
+
+
 
 /// JSON parser for others
 app.use(express.json());
@@ -67,6 +72,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/payment", razorpayRoutes);
 app.use("/api/partner", clinet)
 app.use("/api/refferal", refferal)
+app.use("/api/cashfree", cashFreeRoutes)
 
 
 //ADMIN DASHBOARD
