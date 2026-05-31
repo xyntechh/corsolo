@@ -20,8 +20,10 @@ import EbookAdPopup from "../Banner/Ebookadpopup";
 import EndOfFebOffer from "../Banner/EndOfFebOffer";
 import HoliSpecialOffer from "../Banner/HoliSpecialOffer";
 import SummerSaleOffer from "../Banner/SummerSaleOffer";
+import { useSearchParams } from "react-router-dom";
 
 export default function DatingAppHome() {
+  const [serachParams] = useSearchParams();
   const [coins, setCoins] = useState();
   const [isMatchingActive, setIsMatchingActive] = useState(false);
   const [userGender, setUserGender] = useState("male");
@@ -287,6 +289,40 @@ export default function DatingAppHome() {
   const toggleGender = () =>
     setUserGender(userGender === "male" ? "female" : "male");
 
+  const orderId = serachParams.get("order_id");
+
+  const verifyPayment = async () => {
+    try {
+      const webookResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/cashfree/paymentwebook`,
+        { orderId },
+      );
+
+      console.log("Webhook Response:", webookResponse.data);
+
+      if (webookResponse.data.success) {
+        toast.success(
+          "Payment verified successfully! Coins have been added to your account.",
+        );
+        fetchUser();
+      } else {
+        toast.error(
+          "Payment verification failed. Please contact support if you have been charged.",
+        );
+      }
+    } catch (error) {
+      console.log("Error verifying payment:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (orderId) {
+      verifyPayment();
+    } else {
+      console.log("No order_id found in URL");
+    }
+  }, [orderId]);
+
   return (
     <>
       <style>{`
@@ -384,9 +420,10 @@ export default function DatingAppHome() {
                   <span className="text-lg">💰</span>
                   <span className="text-white font-bold text-xs">{coins}</span>
                 </div>
-                <div 
-                onClick={ () => navigate("/profile") }
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-2 border-white shadow-lg flex items-center justify-center text-xl cursor-pointer active:scale-95 transition-transform">
+                <div
+                  onClick={() => navigate("/profile")}
+                  className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-2 border-white shadow-lg flex items-center justify-center text-xl cursor-pointer active:scale-95 transition-transform"
+                >
                   👤
                 </div>
               </div>

@@ -6,23 +6,46 @@ const Ebook = require("../models/eBook.model.js");
 const User = require("../models/user.model.js");
 require("dotenv").config();
 const crypto = require("crypto");
+const { Cashfree, CFEnvironment } = require("cashfree-pg")
 
 
+//CASHFREE CONFIGURATION
+const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID;
+const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
 
-exports.createPaymentLink = async (req, res) => {
+//initialize cashfree instance
+const cashfree = new Cashfree(
+    process.env.NODE_ENV === "production" ? CFEnvironment.PROD
+        : CFEnvironment.SANDBOX,
+    CASHFREE_APP_ID,
+    CASHFREE_SECRET_KEY
+)
+
+
+//Function to create OrderId
+const generateOrderId = () => {
+    return `order_${Date.now()}_${crypto.randomBytes(6).toString("hex")}`;
+};
+
+
+// Create Payment Link  
+
+exports.createCashfreePaymentLink = async (req, res) => {
+
+    const userId = req.user?.userId
+    const { amount, email, plan } = req.body;
+
+    console.log(amount, email, plan)
 
     try {
 
-        const userId = req.user?.userId;
-
+        // Basic validation
         if (!userId) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized / Token Expired"
             });
         }
-
-        const { amount, email, plan } = req.body;
 
         if (!amount || !email || !plan) {
             return res.status(400).json({
@@ -31,145 +54,79 @@ exports.createPaymentLink = async (req, res) => {
             });
         }
 
-        // Save pending transaction
+
+        //Validate Cashfree Credentials
+        if (!CASHFREE_APP_ID || !CASHFREE_SECRET_KEY) {
+            return res.status(500).json({
+                success: false,
+                message: "Payment gateway not configured"
+            });
+        }
+
+
+        //genrate unique order id
+        const orderId = generateOrderId();
+
+
+        //create pending transaction
         const transaction = await Transaction.create({
             email,
             amount,
             plan,
             transactionType: "PENDING",
-            userId
-        });
+            userId,
+            orderId: orderId,
+        })
 
-        const orderId = `order_${Date.now()}`;
+        await transaction.save();
 
-        const postData = JSON.stringify({
-            order_id: orderId,
+        // Create Cashfree Payment Link
 
+        const orderData = {
             order_amount: amount,
 
             order_currency: "INR",
-
+            order_id: orderId,
             customer_details: {
                 customer_id: userId.toString(),
                 customer_email: email,
+                customer_phone: "9999999999",
+                customer_plan: plan
+
             },
 
             order_meta: {
-                return_url:
-                    `https://www.corsolo.com/home?order_id={order_id}`
-            },
-
-            order_tags: {
-                plan: plan,
-                amount: amount,
-                transactionId: transaction._id.toString(),
-                email: email,
-                userId: userId.toString()
+                return_url: `https://www.corsolo.com/home?order_id={order_id}`,
+                notify_url: "https://www.corsolo.com/api/cashfree/paymentwebook",
 
             },
-        });
 
-        const options = {
+            order_expiry_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+        }
 
-            // LIVE URL
-            hostname: "sandbox.cashfree.com",
 
-            path: "/pg/orders",
+        console.log("Creating Cashfree Payment Link with data:", orderData);
 
-            method: "POST",
+        const cashfreeResponse = await cashfree.PGCreateOrder(orderData);
+        console.log("Cashfree Response:", cashfreeResponse);
 
-            headers: {
-                "Content-Type": "application/json",
+        //checking cashfree have a session id or not
+        if (cashfreeResponse.data?.payment_session_id) {
 
-                "Content-Length":
-                    Buffer.byteLength(postData),
-
-                "x-client-id":
-                    process.env.CASHFREE_APP_ID,
-
-                "x-client-secret":
-                    process.env.CASHFREE_SECRET_KEY,
-
-                "x-api-version":
-                    "2023-08-01"
-            }
-        };
-
-        const request = https.request(options, (response) => {
-
-            let data = "";
-
-            response.on("data", (chunk) => {
-                data += chunk;
+            return res.status(200).json({
+                success: true,
+                payment_session_id: cashfreeResponse.data.payment_session_id,
+                order_id: cashfreeResponse.data.order_id,
+                transactionId: transaction._id
             });
+        } else {
 
-            response.on("end", () => {
+            throw new Error("Failed to create payment link");
 
-                try {
+        }
 
-                    const parsedData = JSON.parse(data);
-
-                    console.log(
-                        "Cashfree Response:",
-                        parsedData
-                    );
-
-                    // If Cashfree returns error
-                    if (parsedData.type === "authentication_error") {
-
-                        return res.status(401).json({
-                            success: false,
-                            message: parsedData.message
-                        });
-
-                    }
-
-                    return res.status(200).json({
-                        success: true,
-
-                        payment_session_id:
-                            parsedData.payment_session_id,
-
-                        order_id:
-                            parsedData.order_id,
-
-                        transactionId:
-                            transaction._id
-                    });
-
-                } catch (err) {
-
-                    console.log(err);
-
-                    return res.status(500).json({
-                        success: false,
-                        message: "Invalid Cashfree Response"
-                    });
-
-                }
-
-            });
-
-        });
-
-        request.on("error", (error) => {
-
-            console.log(error);
-
-            return res.status(500).json({
-                success: false,
-                message: "Payment creation failed",
-                error: error.message
-            });
-
-        });
-
-        request.write(postData);
-
-        request.end();
 
     } catch (error) {
-
         console.log(error);
 
         return res.status(500).json({
@@ -178,124 +135,57 @@ exports.createPaymentLink = async (req, res) => {
         });
 
     }
-
-};
-
+}
 
 
 exports.cashFreeWebhook = async (req, res) => {
     try {
 
-        const signature = req.headers["x-webhook-signature"];
+        const { orderId } = req.body;
 
-        const generatedSignature = crypto
-            .createHmac("sha256", process.env.CASHFREE_WEBHOOK_SECRET)
-            .update(JSON.stringify(req.body))
-            .digest("base64");
+        console.log("Received Cashfree Webhook with data:", req.body);
 
-        if (signature !== generatedSignature) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid Signature"
-            });
-        }
-
-        console.log(
-            "Cashfree Webhook Received:",
-            JSON.stringify(req.body, null, 2)
-        );
-
-        const data = req.body;
-
-        const paymentStatus = data?.data?.payment?.payment_status;
-
-        if (paymentStatus !== "SUCCESS") {
-            return res.status(200).json({
-                success: true,
-                message: "Payment not successful",
-            });
-        }
-
-        const order = data?.data?.order;
-
-        if (!order) {
+        //basic validation
+        if (!orderId) {
             return res.status(400).json({
                 success: false,
-                message: "Order data not found",
+                message: "Invalid Webhook Data"
             });
         }
 
-        const tags = order?.order_tags || {};
+        //get order details from cashfree using order id
 
-        const transactionId = tags.transactionId;
-        const userId = tags.userId;
-        const email = tags.email;
-        const amount = Number(tags.amount || 0);
-        const plan = tags.plan;
+        const cashFreeResponse = await cashfree.PGFetchOrder(orderId);
+        console.log("Fetched Order Details from Cashfree:", cashFreeResponse);
 
-        if (!transactionId || !userId) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing transactionId or userId",
-            });
+        const orderStatus = cashFreeResponse.data.order_status;
+        const paymentDetails = cashFreeResponse.data.payment_details || {};
+
+        console.log("Payment Details:", paymentDetails);
+
+        if (orderStatus === "PAID") {
+
+
+            //find Transaction in database using order id
+            const transaction = await Transaction.findOne({ orderId });
+            if (!transaction) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Transaction not found"
+                });
+            } else {
+
+                transaction.transactionType = "SUCCESS";
+                transaction.paymentId = paymentDetails.payment_id || null;
+                await transaction.save();
+            }
+
+            //coin update pending here 
         }
 
-        const existingTransaction = await Transaction.findById(transactionId);
 
-        if (!existingTransaction) {
-            return res.status(404).json({
-                success: false,
-                message: "Transaction not found",
-            });
-        }
 
-        // Prevent duplicate coin credit
-        if (existingTransaction.transactionType === "SUCCESS") {
-            return res.status(200).json({
-                success: true,
-                message: "Webhook already processed",
-            });
-        }
 
-        const user = await User.findById(userId);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }
-
-        // Update transaction
-        await Transaction.findByIdAndUpdate(
-            transactionId,
-            {
-                transactionType: "SUCCESS",
-                paymentId: data?.data?.payment?.cf_payment_id,
-                orderId: order?.order_id,
-                email,
-                amount,
-                plan,
-                userId,
-            },
-            { new: true }
-        );
-
-        // Add coins
-        await User.findByIdAndUpdate(
-            userId,
-            {
-                $inc: {
-                    coins: amount,
-                },
-            },
-            { new: true }
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "Payment processed successfully",
-        });
     } catch (error) {
         console.error("Cashfree Webhook Error:", error);
 
