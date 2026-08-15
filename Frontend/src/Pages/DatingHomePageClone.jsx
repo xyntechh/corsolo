@@ -49,7 +49,7 @@ function DatingHomePageClone() {
 
   return (
     <>
-      <div className="h-screen w-full bg-[#2E2F38] overflow-hidden flex flex-col">
+      <div className="h-dvh w-full bg-[#2E2F38] overflow-hidden flex flex-col">
         {/* Top Navbar */}
         <div className="shrink-0 z-50">
           <Navbar
