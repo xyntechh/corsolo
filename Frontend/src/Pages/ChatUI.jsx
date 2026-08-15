@@ -384,7 +384,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       setPartnerLeft(true);
       endCall();
       toast.error("Your partner left the chat");
-      setTimeout(() => navigate("/home", { replace: true }), 1500);
+      setTimeout(() => navigate("/homeClone", { replace: true }), 1500);
     };
 
     socket.on("receiveMessage", handleReceiveMessage);
@@ -620,7 +620,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
     toast.success("Chat ended successfully");
     setTimeout(() => {
       const token = localStorage.getItem("authToken");
-      navigate(token ? "/home" : "/", { replace: true });
+      navigate(token ? "/homeClone" : "/", { replace: true });
     }, 500);
   };
 
@@ -633,7 +633,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
     toast.success("Finding your next match...");
     setTimeout(() => {
       const token = localStorage.getItem("authToken");
-      navigate(token ? "/home" : "/", { replace: true });
+      navigate(token ? "/homeClone" : "/", { replace: true });
     }, 500);
   };
 
@@ -643,28 +643,28 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
   if (!myId) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 text-white">
+      <div className="flex items-center justify-center h-screen bg-[#08080B] text-white">
         <p>Loading user data...</p>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-[##2E2F38] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-purple-950/60 backdrop-blur-md border-b border-pink-600/40 shadow-lg flex-shrink-0">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-[#0D0D11] border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <img
             src={profileImg}
             alt="profile"
-            className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 border-pink-500 flex-shrink-0"
+            className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/10 flex-shrink-0"
           />
           <div className="min-w-0 flex-1">
             <h2 className="text-white font-semibold text-sm sm:text-base truncate">
               {partnerData?.name || "Stranger"}
             </h2>
             {isAI ? (
-              <span className="text-purple-300 text-[10px] sm:text-xs">
+              <span className="text-gray-400 text-[10px] sm:text-xs">
                 🤖 AI Assistant
               </span>
             ) : partnerLeft ? (
@@ -684,7 +684,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
           {!isAI && !partnerLeft && !onCall && !callConnecting && (
             <button
               onClick={startCall}
-              className="bg-green-500 p-2 rounded-full hover:bg-green-600 transition-colors"
+              className="bg-green-600 p-2 rounded-full hover:bg-green-500 transition-colors"
               title="Start Video Call"
             >
               <svg
@@ -705,7 +705,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
           <button
             onClick={() => setShowModal(true)}
-            className="text-[10px] sm:text-xs bg-red-500 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white font-semibold hover:bg-red-600 transition-colors flex-shrink-0 whitespace-nowrap"
+            className="text-[10px] sm:text-xs bg-red-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white font-semibold hover:bg-red-500 transition-colors flex-shrink-0 whitespace-nowrap"
           >
             End Chat
           </button>
@@ -724,7 +724,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
           />
 
           {/* Local Video (Picture-in-Picture) */}
-          <div className="absolute top-4 right-4 w-32 h-40 sm:w-40 sm:h-48 bg-gray-800 rounded-lg overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-4 right-4 w-32 h-40 sm:w-40 sm:h-48 bg-[#0D0D11] rounded-xl overflow-hidden border border-white/10 shadow-lg">
             <video
               ref={localVideoRef}
               autoPlay
@@ -735,11 +735,11 @@ function ChatUI({ userData, partnerData, room, isAI }) {
           </div>
 
           {/* Call Controls */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-md px-6 py-4 rounded-full">
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-[#0D0D11]/80 border border-white/10 px-6 py-4 rounded-full">
             <button
               onClick={toggleMute}
               className={`p-4 rounded-full transition-colors ${
-                isMuted ? "bg-red-500" : "bg-white/20 hover:bg-white/30"
+                isMuted ? "bg-red-600" : "bg-white/10 hover:bg-white/20"
               }`}
             >
               <svg
@@ -768,7 +768,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
             <button
               onClick={endCall}
-              className="p-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+              className="p-4 rounded-full bg-red-600 hover:bg-red-500 transition-colors"
             >
               <svg
                 className="w-6 h-6 text-white"
@@ -788,7 +788,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
             <button
               onClick={toggleVideo}
               className={`p-4 rounded-full transition-colors ${
-                isVideoOff ? "bg-red-500" : "bg-white/20 hover:bg-white/30"
+                isVideoOff ? "bg-red-600" : "bg-white/10 hover:bg-white/20"
               }`}
             >
               <svg
@@ -831,8 +831,8 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       {/* Incoming Call Modal */}
       {incomingCall && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-purple-900 rounded-2xl p-8 shadow-2xl text-center max-w-sm mx-4">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <div className="bg-[#0D0D11] border border-white/10 rounded-xl p-8 shadow-2xl text-center max-w-sm mx-4">
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-purple-600 flex items-center justify-center">
               <svg
                 className="w-12 h-12 text-white"
                 fill="none"
@@ -850,13 +850,13 @@ function ChatUI({ userData, partnerData, room, isAI }) {
             <h3 className="text-2xl font-bold text-white mb-2">
               Incoming Video Call
             </h3>
-            <p className="text-purple-300 mb-6">
+            <p className="text-gray-400 mb-6">
               {partnerData?.name || "Stranger"} is calling...
             </p>
             <div className="flex gap-4 justify-center">
               <button
                 onClick={rejectCall}
-                className="px-6 py-3 bg-red-500 hover:bg-red-600 rounded-full text-white font-semibold transition-colors flex items-center gap-2"
+                className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-full text-white font-semibold transition-colors flex items-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -875,7 +875,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
               </button>
               <button
                 onClick={() => acceptCall(incomingCall.offer)}
-                className="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-full text-white font-semibold transition-colors flex items-center gap-2"
+                className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-full text-white font-semibold transition-colors flex items-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -904,13 +904,13 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       >
         <div className="flex flex-col gap-2 pb-2 max-w-4xl mx-auto">
           {messages.length === 0 && room && !isAI && (
-            <div className="text-center text-purple-300 text-xs sm:text-sm mt-4">
+            <div className="text-center text-gray-400 text-xs sm:text-sm mt-4">
               👋 Say hi to your match!
             </div>
           )}
 
           {partnerLeft && (
-            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-2 sm:p-3 text-center text-red-300 text-xs sm:text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-2 sm:p-3 text-center text-red-300 text-xs sm:text-sm">
               ⚠️ Your partner has left the chat
             </div>
           )}
@@ -923,10 +923,10 @@ function ChatUI({ userData, partnerData, room, isAI }) {
               }`}
             >
               <div
-                className={`max-w-[85%] sm:max-w-[75%] rounded-2xl shadow-md ${
+                className={`max-w-[85%] sm:max-w-[75%] rounded-2xl shadow-sm ${
                   msg.type === "sent"
-                    ? "bg-pink-500 text-black rounded-br-sm"
-                    : "bg-purple-700 text-white rounded-bl-sm"
+                    ? "bg-purple-600 text-white rounded-br-sm"
+                    : "bg-[#15151b] border border-white/10 text-white rounded-bl-sm"
                 }`}
               >
                 {msg.contentType === "image" && msg.mediaUrl && (
@@ -955,7 +955,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
                         className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           msg.type === "sent"
                             ? "bg-white/20 hover:bg-white/30"
-                            : "bg-purple-600 hover:bg-purple-500"
+                            : "bg-white/10 hover:bg-white/20"
                         } transition-colors`}
                       >
                         {playingAudio === msg.id ? (
@@ -983,7 +983,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
                             className={`flex-1 rounded-full transition-all ${
                               msg.type === "sent"
                                 ? "bg-white/30"
-                                : "bg-purple-400/40"
+                                : "bg-white/20"
                             }`}
                             style={{
                               height: `${Math.random() * 60 + 40}%`,
@@ -1019,7 +1019,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-purple-700 text-white px-3 sm:px-4 py-2 rounded-2xl rounded-bl-sm">
+              <div className="bg-[#15151b] border border-white/10 text-white px-3 sm:px-4 py-2 rounded-2xl rounded-bl-sm">
                 <div className="flex gap-1">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-bounce"></span>
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]"></span>
@@ -1034,7 +1034,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       </div>
 
       {/* Input Area */}
-      <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-purple-950/40 backdrop-blur-xl border-t border-pink-600/30 flex-shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-[#0D0D11] border-t border-white/10 flex-shrink-0">
         <input
           ref={fileInputRef}
           type="file"
@@ -1046,7 +1046,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={!room || partnerLeft || isUploading}
-          className="bg-purple-600 p-2 sm:p-2.5 rounded-full hover:bg-purple-500 disabled:opacity-50 transition-all flex-shrink-0"
+          className="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-full hover:bg-white/10 disabled:opacity-50 transition-all flex-shrink-0"
         >
           <svg
             className="w-4 h-4 sm:w-5 sm:h-5 text-white"
@@ -1074,8 +1074,8 @@ function ChatUI({ userData, partnerData, room, isAI }) {
           disabled={!room || partnerLeft || isUploading}
           className={`p-2 sm:p-2.5 rounded-full disabled:opacity-50 transition-all flex-shrink-0 ${
             isRecording
-              ? "bg-red-500 animate-pulse"
-              : "bg-purple-600 hover:bg-purple-500"
+              ? "bg-red-600 animate-pulse"
+              : "bg-white/5 border border-white/10 hover:bg-white/10"
           }`}
         >
           <svg
@@ -1113,7 +1113,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
                     : "Type a message..."
               }
               disabled={!room || partnerLeft || isUploading}
-              className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-purple-900/50 text-white text-xs sm:text-sm placeholder-purple-300/70 border border-purple-700/50 focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
+              className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-white/5 text-white text-xs sm:text-sm placeholder-gray-500 border border-white/10 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 disabled:opacity-50"
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -1124,7 +1124,7 @@ function ChatUI({ userData, partnerData, room, isAI }) {
             <button
               onClick={handleSend}
               disabled={!room || !newMessage.trim() || partnerLeft}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-black text-xs sm:text-sm font-bold disabled:opacity-50 transition-all flex-shrink-0 whitespace-nowrap"
+              className="bg-purple-600 hover:bg-purple-500 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-white text-xs sm:text-sm font-bold disabled:opacity-50 transition-all flex-shrink-0 whitespace-nowrap"
             >
               Send
             </button>
@@ -1134,9 +1134,9 @@ function ChatUI({ userData, partnerData, room, isAI }) {
 
       {isUploading && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-purple-900 rounded-xl p-4 sm:p-6 shadow-2xl mx-4">
+          <div className="bg-[#0D0D11] border border-white/10 rounded-xl p-4 sm:p-6 shadow-2xl mx-4">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
               <p className="text-white font-semibold text-sm sm:text-base">
                 Uploading...
               </p>
@@ -1148,27 +1148,27 @@ function ChatUI({ userData, partnerData, room, isAI }) {
       {/* Confirm End Chat Modal */}
       {showModal && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-purple-900 rounded-2xl p-6 shadow-2xl max-w-sm mx-4">
+          <div className="bg-[#0D0D11] border border-white/10 rounded-xl p-6 shadow-2xl max-w-sm mx-4">
             <h3 className="text-xl font-bold text-white mb-4">End Chat?</h3>
-            <p className="text-purple-300 mb-6">
+            <p className="text-gray-400 mb-6">
               Do you want to end this chat or find a new match?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-white font-semibold transition-colors"
+                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-white font-semibold transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleFindNext}
-                className="flex-1 px-4 py-2 bg-pink-500 hover:bg-pink-600 rounded-lg text-white font-semibold transition-colors"
+                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-xl text-white font-semibold transition-colors"
               >
                 Find Next
               </button>
               <button
                 onClick={handleLeaveRoom}
-                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white font-semibold transition-colors"
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-xl text-white font-semibold transition-colors"
               >
                 End Chat
               </button>

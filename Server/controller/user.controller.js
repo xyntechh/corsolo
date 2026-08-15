@@ -5,8 +5,20 @@ const Partner = require("../models/Partner.model.js")
 const sendEmail = require("../utility/sendEmail.js")
 const crypto = require("crypto");
 const dotenv = require("dotenv");
+const FriendRequest = require("../models/FriendRequest.js")
+const { Server } = require("socket.io");
+
+const {
+  getIO,
+  onlineUsers,
+} = require("./../socket/socketManager.js");
+
+
 
 dotenv.config();
+
+
+
 
 
 
@@ -16,12 +28,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "yoursupersecretkey";
 // Register User
 exports.registerUser = async (req, res) => {
   try {
-    const { name, age, gender, lookingFor } = req.body;
+    const { name, dob, gender, lookingFor } = req.body;
 
     const ip = req.clientIP;
 
     // Validation
-    if (!ip || !name || !age || !gender) {
+    if (!ip || !name || !dob || !gender) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -30,14 +42,14 @@ exports.registerUser = async (req, res) => {
     const newUser = await User.create({
       ip,
       name,
-      age,
+      dob,
       gender,
       lookingFor,
     });
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: newUser._id, name: newUser.name, lookingFor: lookingFor },
+      { userId: newUser._id, name: newUser.name, lookingFor: lookingFor, isGuest: true },
       JWT_SECRET,
       { expiresIn: "7d" } // token valid for 7 days
     );
@@ -49,7 +61,7 @@ exports.registerUser = async (req, res) => {
         user: {
           id: newUser._id,
           name: newUser.name,
-          age: newUser.age,
+          dob: newUser.dob,
           gender: newUser.gender,
           lookingFor: newUser.lookingFor,
         },
@@ -62,80 +74,121 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+
+//SINGUP IS UPDATE FOR NEW THEME AND PROFILE PICTURE LOGIC ARE PENDIG HERE
 exports.signUp = async (req, res) => {
   try {
-    const { name, age, gender, lookingFor, phone, email, password, refferdBy } = req.body;
+    const {
+      name,
+      dob,
+      gender,
+      email,
+      phone,
+      password,
+      profilePicture,
+      bio,
+      country,
+      state,
+      city,
+      lookingFor,
+      interestsIn,
+      yourInterests,
+      refferdBy,
+    } = req.body;
 
     const ip = req.clientIP;
 
     // Validation
-    let missingFiled = []
+    const missingFields = [];
 
-    if (!name) missingFiled.push("name")
-    if (!age) missingFiled.push("age")
-    if (!gender) missingFiled.push("gender")
-    if (!phone) missingFiled.push("phone")
-    if (!email) missingFiled.push("email")
-    if (!password) missingFiled.push("password")
+    if (!name) missingFields.push("name");
+    if (!dob) missingFields.push("dob");
+    if (!gender) missingFields.push("gender");
+    if (!phone) missingFields.push("phone");
+    if (!email) missingFields.push("email");
+    if (!password) missingFields.push("password");
+    if (!bio) missingFields.push("bio");
+    if (!country) missingFields.push("country");
+    if (!state) missingFields.push("state");
+    if (!city) missingFields.push("city");
+    if (!lookingFor) missingFields.push("lookingFor");
+    if (!interestsIn) missingFields.push("interestsIn");
+    if (!yourInterests) missingFields.push("yourInterests");
 
-    if (!missingFiled.length == 0) {
-      return res.status(400).json({
-        missingFiled
-      })
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    hashedPassword = await bcrypt.hash(password, salt);
-
-
-    const existingEmail = await User.findOne({ email })
-
-
-    if (existingEmail) {
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "This email is already exists"
-      })
+        message: "Missing required fields",
+        missingFields,
+      });
     }
 
+    // Check Existing User
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }],
+    });
 
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message:
+          existingUser.email === email
+            ? "Email already exists"
+            : "Phone number already exists",
+      });
+    }
 
-    // Create new user
+    // Hash Password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create User
     const newUser = await User.create({
       ip,
       name,
-      age,
+      dob,
       gender,
-      lookingFor,
       email,
       phone,
-      isGuest: false,
       password: hashedPassword,
-      refferdBy
+      profilePicture,
+      bio,
+      country,
+      state,
+      city,
+      lookingFor,
+      interestsIn,
+      yourInterests,
+      isGuest: false,
+      refferdBy,
     });
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: newUser._id, name: newUser.name, lookingFor: lookingFor },
+      {
+        userId: newUser._id,
+        name: newUser.name,
+        lookingFor: newUser.lookingFor,
+        isGuest: false
+      },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
 
+    // Referral Signup Count
+    if (refferdBy) {
+      const partner = await Partner.findOne({
+        referralCode: refferdBy,
+      });
 
-    //ADD SINGUP COUNT IN PARTNER
-
-    const partner = await Partner.findOne({ referralCode: refferdBy })
-
-
-    if (partner) {
-      partner.totalSignups = (partner.totalSignups || 0) + 1;
-      await partner.save();
+      if (partner) {
+        partner.totalSignups = (partner.totalSignups || 0) + 1;
+        await partner.save();
+      }
     }
 
 
-
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User registered successfully",
       data: {
@@ -146,15 +199,20 @@ exports.signUp = async (req, res) => {
           gender: newUser.gender,
           lookingFor: newUser.lookingFor,
           email: newUser.email,
-          phone: newUser.phone
-
+          phone: newUser.phone,
+          profilePicture: newUser.profilePicture,
         },
         token,
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error("Signup Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
 
@@ -315,6 +373,8 @@ exports.login = async (req, res) => {
       });
     }
 
+    console.log(password)
+
     // 2. Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
@@ -323,6 +383,9 @@ exports.login = async (req, res) => {
         message: "User not found",
       });
     }
+
+    console.log(user)
+
 
     // 3. Compare password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -520,6 +583,263 @@ exports.resetPassword = async (req, res) => {
 };
 
 
+exports.pendingFriendRequest = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Validation
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    // Get all pending friend requests
+    const requests = await FriendRequest.find({
+      receiver: userId,
+      status: "pending",
+    })
+      .populate("sender", "name")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: requests.length,
+      requests,
+    });
+  } catch (error) {
+    console.error("Pending Friend Request Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
+exports.acceptFriendRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const userId = req.user.userId;
+
+    console.log(requestId)
+
+
+    // Validation
+    if (!requestId) {
+      return res.status(400).json({
+        success: false,
+        message: "Request ID is required",
+      });
+    }
+
+
+    // Find request
+    const request = await FriendRequest.findById(requestId);
+
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Friend request not found",
+      });
+    }
+
+
+    // Check current user is receiver
+    if (request.receiver.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot accept this request",
+      });
+    }
+
+
+    // Check status
+    if (request.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Request already ${request.status}`,
+      });
+    }
+
+
+    // Update status
+    request.status = "accepted";
+
+    await request.save();
+
+
+
+    // Add friend both users
+
+    await User.findByIdAndUpdate(
+      request.sender,
+      {
+        $addToSet: {
+          friends: request.receiver,
+        },
+      }
+    );
+
+
+    await User.findByIdAndUpdate(
+      request.receiver,
+      {
+        $addToSet: {
+          friends: request.sender,
+        },
+      }
+    );
+
+
+    const senderSocketId = onlineUsers.get(request.sender.toString());
+    const io = getIO();
+
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("friendRequestAccepted", {
+        requestId: request._id,
+        senderId: request.sender,
+        receiverId: request.receiver,
+        message: "Your friend request has been accepted",
+      });
+    }
+
+
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Friend request accepted",
+      request,
+    });
+
+
+  } catch (error) {
+
+    console.error("acceptFriendRequest:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+
+  }
+};
+
+
+exports.rejectFriendRequest = async (req, res) => {
+  try {
+
+    const { requestId } = req.params;
+    const userId = req.user.userId;
+
+
+
+    // Validation
+    if (!requestId) {
+      return res.status(400).json({
+        success: false,
+        message: "Request ID is required",
+      });
+    }
+
+
+
+    const request = await FriendRequest.findById(requestId);
+
+
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Friend request not found",
+      });
+    }
+
+
+
+    // Only receiver can reject
+
+    if (request.receiver.toString() !== userId.toString()) {
+
+      return res.status(403).json({
+        success: false,
+        message: "You cannot reject this request",
+      });
+
+    }
+
+
+
+    if (request.status !== "pending") {
+
+      return res.status(400).json({
+        success: false,
+        message: `Request already ${request.status}`,
+      });
+
+    }
+
+
+
+    // Update status
+
+    request.status = "rejected";
+
+    await request.save();
+
+
+
+    return res.status(200).json({
+
+      success: true,
+      message: "Friend request rejected",
+      request
+
+    });
+
+
+
+  } catch (error) {
+
+    console.error("rejectFriendRequest:", error);
+
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+
+  }
+};
+
+
+exports.getFriends = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId)
+      .populate("friends", "name profilePicture");
+
+    const friends = user.friends.map((friend) => ({
+      ...friend.toObject(),
+      online: onlineUsers.has(friend._id.toString()),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      friends,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 
 

@@ -13,7 +13,7 @@ function FindMatch() {
   const params = new URLSearchParams(location.search);
   const mode = params.get("mode") || "random";
 
-  const [screen, setScreen] = useState("loading");
+  const [screen, setScreen] = useState("home");
   const [room, setRoom] = useState(null);
   const [partner, setPartner] = useState(null);
   const [queueStatus, setQueueStatus] = useState("Searching for a match...");
@@ -119,7 +119,7 @@ function FindMatch() {
         id: partnerId,
         name: partnerName,
       });
-      setScreen("chat");
+      setScreen("home");
       console.log("✅ Switched to chat screen");
     };
 
@@ -205,13 +205,6 @@ function FindMatch() {
 
   return (
     <>
-      {screen === "loading" && (
-        <LoadingScreen
-          lookingFor={decoded.lookingFor || "anyone"}
-          status={queueStatus}
-        />
-      )}
-
       {(screen === "chat" || screen === "ai") && room && partner && (
         <ChatUI
           userData={{
