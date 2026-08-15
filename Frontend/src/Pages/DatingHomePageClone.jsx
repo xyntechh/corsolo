@@ -99,7 +99,6 @@ function DatingHomePageClone() {
               <StartChatCard
                 manageInterstModal={manageInterstModal}
                 setmanageInterstModal={setmanageInterstModal}
-                
               />
             </div>
 
@@ -281,58 +280,8 @@ function DatingHomePageClone() {
         </div>
       </>
 
-      {/* Premimum model Paymement Card */}
-      <>
-        {/* Overlay - only mounted when the modal is actually open, so it can never block clicks while closed */}
-        {showPremium && (
-          <div
-            onClick={() => setShowPremium(false)}
-            className="fixed inset-0 bg-black/60 z-[90]"
-          />
-        )}
-
-        {/* Desktop */}
-        <div
-          className={`
-      hidden lg:flex
-      fixed inset-0
-      items-center justify-center
-      z-[100]
-      transition-all duration-300
-      ${
-        showPremium
-          ? "opacity-100 scale-100"
-          : "opacity-0 scale-95 pointer-events-none"
-      }
-    `}
-        >
-          <PremiumModal
-            showPremium={showPremium}
-            setShowPremium={setShowPremium}
-          />
-        </div>
-
-        {/* Mobile: pointer-events-none added when closed, so the offscreen sheet
-            can never intercept taps meant for the sidebar's footer buttons */}
-        <div
-          className={`
-      lg:hidden
-      fixed left-0 right-0 bottom-0
-      z-[100]
-      transition-transform duration-300
-      ${
-        showPremium
-          ? "translate-y-0 pointer-events-auto"
-          : "translate-y-full pointer-events-none"
-      }
-    `}
-        >
-          <PremiumModal
-            showPremium={showPremium}
-            setShowPremium={setShowPremium}
-          />
-        </div>
-      </>
+      {/* Premium Modal — Payment Card */}
+      {showPremium && <PremiumModal setShowPremium={setShowPremium} />}
 
       {/* Manage INterst Modal Card */}
       <>
