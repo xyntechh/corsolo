@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { socket } from "../socket.js";
 
 const UserContext = createContext();
 
@@ -8,6 +9,10 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [accountDetails, setAccountDetails] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [friendRequests, setfriendRequests] = useState([]);
+  const [friendList, setfriendList] = useState([]);
+  const [chatPreferences, setChatPreferences] = useState(null);
+  const [isMatched, setIsMatched] = useState(false);
 
   const fetchUser = async () => {
     try {
@@ -18,7 +23,7 @@ export const UserProvider = ({ children }) => {
           headers: {
             Authorization: `Bearer ${token}`, // token ko header me bhejna
           },
-        }
+        },
       );
       if (res.data) {
         setUser(res.data.user);
@@ -42,24 +47,95 @@ export const UserProvider = ({ children }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      setAccountDetails(res.data); // 🔥 UI auto update
+      setAccountDetails(res.data);
     } catch (error) {
       console.error(
         "Error fetching account details:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
+      );
+    }
+  };
+
+  const getFriendRequest = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const UserID = user?._id;
+
+      if (!token || !UserID) return;
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/user/fetchPendingFriendReq/${UserID}`,
+      );
+
+      setfriendRequests(res?.data?.requests);
+    } catch (error) {
+      console.error(
+        "Error fetching friend requests:",
+        error.response?.data || error.message,
+      );
+    }
+  };
+
+  const getFriend = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      if (!token) return;
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/user/get-friends`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      // Agar context use kar raha hai
+      setfriendList(res?.data?.friends);
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        "Error fetching friends:",
+        error.response?.data || error.message,
       );
     }
   };
 
   useEffect(() => {
     getAccountDetails();
+    getFriend();
+    getFriendRequest();
   }, [refreshKey]);
 
   useEffect(() => {
     fetchUser();
+    getFriend();
+  }, []);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    getFriendRequest();
+  }, [user]);
+
+  useEffect(() => {
+    socket.on("onlineStatusChanged", ({ userId, online }) => {
+      setfriendList((prev) =>
+        prev.map((friend) =>
+          friend._id === userId ? { ...friend, online } : friend,
+        ),
+      );
+    });
+
+    return () => {
+      socket.off("onlineStatusChanged");
+    };
   }, []);
 
   const Value = {
@@ -69,6 +145,16 @@ export const UserProvider = ({ children }) => {
     fetchUser,
     accountDetails,
     setRefreshKey,
+    refreshKey,
+    friendRequests,
+    setfriendRequests,
+    getFriendRequest,
+    friendList,
+    getFriend,
+    chatPreferences,
+    setChatPreferences,
+    isMatched,
+    setIsMatched,
   };
 
   return <UserContext.Provider value={Value}>{children}</UserContext.Provider>;

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, forgetPassword, resetPassword } = require("../controller/user.controller.js");
+const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, forgetPassword, resetPassword, getFriends, acceptFriendRequest, rejectFriendRequest, pendingFriendRequest } = require("../controller/user.controller.js");
 const authMiddleware = require("../middleware/auth.js")
 const { findMatch } = require("../controller/match.controller.js");
 const { fetchMessages, uploadChatMedia } = require("../controller/chat.controller.js");
@@ -27,6 +27,14 @@ router.post("/signUp", signUp)
 router.post("/forgetPassword", forgetPassword)
 
 router.post("/resetPassword/:token", resetPassword)
+
+
+router.get("/fetchPendingFriendReq/:userId", pendingFriendRequest)
+
+router.patch("/friend-request/:requestId/accept", authMiddleware, acceptFriendRequest)
+router.patch("/friend-request/:requestId/reject", authMiddleware ,rejectFriendRequest)
+
+router.get("/get-friends", authMiddleware,  getFriends )
 
 
 

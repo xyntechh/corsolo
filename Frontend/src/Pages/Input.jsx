@@ -2,12 +2,23 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import ClipLoader from "react-spinners/ClipLoader"; // ADDED
+import ClipLoader from "react-spinners/ClipLoader";
+import { Heart, User, Cake, Search } from "lucide-react";
+import { useUser } from "../Context/UserContext.jsx";
+
+const footerLinks = [
+  { label: "Contact Us", href: "/contact" },
+  { label: "Partner program", href: "/partner" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Refunds", href: "/refundpolicy" },
+];
 
 function Input() {
   const [nick, setNick] = useState("");
-  const [age, setAge] = useState("");
+  const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [lookingFor, setLookingFor] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,9 +37,11 @@ function Input() {
 
   const navigate = useNavigate();
 
+  const { fetchUser } = useUser();
+
   const handleSubmit = async () => {
     try {
-      if (!nick || !age || !gender) {
+      if (!nick || !dob || !gender || !lookingFor) {
         return toast.error("Please enter all details!");
       }
 
@@ -38,9 +51,10 @@ function Input() {
         `${import.meta.env.VITE_API_URL}/api/user/register`,
         {
           name: nick,
-          age,
+          dob,
           gender,
-        }
+          lookingFor,
+        },
       );
 
       setLoading(false);
@@ -50,8 +64,10 @@ function Input() {
 
         localStorage.setItem("authToken", token);
 
-        toast.success(`Welcome ${user.name}!`);
-        navigate("/looking-for");
+        fetchUser();
+
+        toast.success("Welcome to the community");
+        navigate("/homeClone");
       } else {
         toast.error("Registration failed!");
       }
@@ -66,106 +82,190 @@ function Input() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-pink-700 px-4 overflow-hidden">
-      <div className="w-full max-w-md backdrop-blur-lg bg-purple-900/40 border border-purple-700 rounded-3xl shadow-2xl p-6 sm:p-8 flex flex-col justify-center gap-5">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-center text-white tracking-wide">
-            Match Anonymously
-          </h1>
-          <p className="text-center text-purple-200 text-xs sm:text-sm">
-            Enter your details below and start connecting
-          </p>
-        </div>
+    <div className="fixed inset-0 w-full h-full bg-[#08080B] overflow-hidden text-white">
+      {/* Background Glow — softened */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-purple-500/10 blur-[160px] rounded-full" />
+      <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/5 blur-[130px] rounded-full" />
+      <div className="pointer-events-none absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/5 blur-[130px] rounded-full" />
 
-        <div className="flex flex-col gap-3">
-          <input
-            type="text"
-            placeholder="Nickname"
-            value={nick}
-            onChange={(e) => setNick(e.target.value)}
-            className="p-3 rounded-xl bg-purple-800/70 placeholder-purple-300 text-white border border-purple-600 focus:border-purple-400 focus:ring-2 focus:ring-purple-500 outline-none transition"
-            style={{ fontSize: "16px" }}
-          />
+      <div className="relative z-10 w-full h-full flex items-center justify-center px-4 overflow-y-auto py-6">
+        <div className="w-full max-w-md">
+          <div className="relative">
+            {/* Card glow — softened */}
+            <div className="absolute inset-0 bg-purple-500/10 blur-2xl rounded-3xl" />
 
-          <input
-            type="number"
-            placeholder="Age"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            className="p-3 rounded-xl bg-purple-800/70 placeholder-purple-300 text-white border border-purple-600 focus:border-purple-400 focus:ring-2 focus:ring-purple-500 outline-none transition"
-            style={{ fontSize: "16px" }}
-          />
-        </div>
+            <div className="relative bg-[#0D0D11]/95 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col gap-5">
+              {/* Heart badge */}
+              <div className="flex justify-center">
+                <div className="w-14 h-14 rounded-full bg-purple-500 shadow-[0_0_25px_rgba(168,85,247,.4)] flex items-center justify-center">
+                  <Heart className="w-6 h-6 fill-white text-white" />
+                </div>
+              </div>
 
-        <div className="flex gap-3 sm:gap-4">
-          <button
-            onClick={() => setGender("Male")}
-            className={`flex-1 py-3 rounded-xl font-semibold transition ${
-              gender === "Male"
-                ? "bg-pink-500 text-black shadow-lg"
-                : "bg-purple-700/60 text-white hover:bg-purple-700/80"
-            }`}
-          >
-            Male
-          </button>
+              <div className="flex flex-col gap-1.5 -mt-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-center tracking-wide">
+                  Match Anonymously
+                </h1>
+                <p className="text-center text-gray-400 text-xs sm:text-sm">
+                  Enter your details below and start connecting
+                </p>
+              </div>
 
-          <button
-            onClick={() => setGender("Female")}
-            className={`flex-1 py-3 rounded-xl font-semibold transition ${
-              gender === "Female"
-                ? "bg-pink-500 text-black shadow-lg"
-                : "bg-purple-700/60 text-white hover:bg-purple-700/80"
-            }`}
-          >
-            Female
-          </button>
-        </div>
+              {/* Inputs */}
+              <div className="flex flex-col gap-3">
+                <div className="relative">
+                  <User
+                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nickname"
+                    value={nick}
+                    onChange={(e) => setNick(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 placeholder-gray-500 text-white border border-white/10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 outline-none transition"
+                    style={{ fontSize: "16px" }}
+                  />
+                </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-black font-semibold p-4 rounded-xl shadow-lg disabled:opacity-70 transition-all active:scale-95"
-        >
-          {loading ? <ClipLoader size={28} color="#000" /> : "Start Chat"}
-        </button>
+                <div className="relative">
+                  <Cake
+                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none"
+                  />
+                  <input
+                    type="date"
+                    placeholder="Date of Birth"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 text-white border border-white/10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/40 outline-none transition [color-scheme:dark]"
+                    style={{ fontSize: "16px" }}
+                  />
+                </div>
+              </div>
 
-        <button
-          onClick={handleSignIn}
-          className="w-full text-center text-purple-200 hover:text-white text-sm font-medium transition-colors"
-        >
-          Already have an account?{" "}
-          <span className="text-pink-400 hover:text-pink-300 font-semibold">
-            Login
-          </span>
-        </button>
+              {/* Gender select */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide pl-1">
+                  I am
+                </span>
+                <div className="flex gap-3 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setGender("male")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors border ${
+                      gender === "male"
+                        ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
+                    }`}
+                  >
+                    Male
+                  </button>
 
-        <div className="flex flex-wrap justify-center items-center gap-2 text-purple-300 text-[10px] sm:text-xs">
-          <a href="/contact" className="hover:text-pink-400 transition-colors">
-            Contact Us
-          </a>
+                  <button
+                    type="button"
+                    onClick={() => setGender("female")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors border ${
+                      gender === "female"
+                        ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
+                    }`}
+                  >
+                    Female
+                  </button>
+                </div>
+              </div>
 
-           <a href="/partner" className="hover:text-pink-400 transition-colors">
-            Partner program
-          </a>
-          <span>•</span>
-          <a href="/terms" className="hover:text-pink-400 transition-colors">
-            Terms & Conditions
-          </a>
-          <span>•</span>
-          <a href="/privacy" className="hover:text-pink-400 transition-colors">
-            Privacy Policy
-          </a>
-          <span>•</span>
-          <a
-            href="/refundpolicy"
-            className="hover:text-pink-400 transition-colors"
-          >
-            Refunds
-          </a>
-        </div>
+              {/* Looking for select */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide pl-1 flex items-center gap-1.5">
+                  <Search size={12} className="text-purple-400" />
+                  Looking for
+                </span>
+                <div className="flex gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setLookingFor("Man")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors border text-sm ${
+                      lookingFor === "Man"
+                        ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
+                    }`}
+                  >
+                    Man
+                  </button>
 
-        <div className="text-center text-purple-300 text-[10px] sm:text-xs -mt-2">
-          By clicking Start Chat, you agree to our policies.
+                  <button
+                    type="button"
+                    onClick={() => setLookingFor("Women")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors border text-sm ${
+                      lookingFor === "Women"
+                        ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
+                    }`}
+                  >
+                    Women
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLookingFor("Everyone")}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-colors border text-sm ${
+                      lookingFor === "Everyone"
+                        ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
+                        : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
+                    }`}
+                  >
+                    Everyone
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full h-12 flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white font-semibold rounded-xl shadow-md disabled:opacity-70 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D0D11]"
+              >
+                {loading ? <ClipLoader size={22} color="#fff" /> : "Start Chat"}
+              </button>
+
+              {/* Login */}
+              <button
+                type="button"
+                onClick={handleSignIn}
+                className="w-full text-center text-gray-400 hover:text-white text-sm font-medium transition-colors -mt-2"
+              >
+                Already have an account?{" "}
+                <span className="text-purple-400 hover:text-purple-300 font-semibold">
+                  Login
+                </span>
+              </button>
+
+              <div className="h-px bg-white/10" />
+
+              {/* Footer links */}
+              <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-gray-500 text-[10px] sm:text-xs">
+                {footerLinks.map(({ label, href }, i) => (
+                  <React.Fragment key={href}>
+                    <a
+                      href={href}
+                      className="hover:text-purple-400 transition-colors"
+                    >
+                      {label}
+                    </a>
+                    {i < footerLinks.length - 1 && <span>•</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              <div className="text-center text-gray-500 text-[10px] sm:text-xs -mt-2">
+                By clicking Start Chat, you agree to our policies.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

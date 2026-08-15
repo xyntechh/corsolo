@@ -164,7 +164,7 @@ export default function AddCoin({ onClose }) {
       cashfree.checkout({
         paymentSessionId: data.payment_session_id,
 
-        redirectTarget: "_modal",
+        redirectTarget: "_self",
       });
     } catch (error) {
       console.log(error);

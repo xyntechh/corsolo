@@ -4,12 +4,13 @@ require("dotenv").config();
 const userRoutes = require("./routes/user.route.js");
 const cors = require("cors");
 const http = require("http");
-const initSocket = require("./socket.js");
+const initSocket = require("./socket/socket.js");
 const prerender = require("prerender-node");
 const razorpayRoutes = require("./routes/razorpayRoutes.js");
 const bodyParser = require("body-parser");
 const clinet = require("./routes/partner.Routes.js")
 const refferal = require("./routes/refferal.Routes.js")
+const chat = require("./routes/chats.Routes.js")
 
 
 //ADMIN DASHBOARD IMPORTING 
@@ -73,6 +74,7 @@ app.use("/api/payment", razorpayRoutes);
 app.use("/api/partner", clinet)
 app.use("/api/refferal", refferal)
 app.use("/api/cashfree", cashFreeRoutes)
+app.use("/api/chat", chat)
 
 
 //ADMIN DASHBOARD

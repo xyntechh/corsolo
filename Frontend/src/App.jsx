@@ -17,6 +17,14 @@ import SignUp from "./Pages/SignUp";
 import Partner from "./Pages/Partner";
 import PartnerDashboardContent from "./Partner/Pages/PartnerDashboardContent.jsx";
 import PartnerMainDashboard from "./Partner/Pages/PartnerMain.jsx";
+import ChatHome from "./Pages/ChatHome.jsx";
+import ChatHomeClone2 from "./Pages/DatingHomePageClone.jsx";
+import GuestRoute from "./Secure/GuestRoute.jsx";
+import ChatScreen from "./Components/DatingHomePage/ChatScreen.jsx";
+
+import BasicDetails from "./Components/Onboarding/BasicDetails.jsx";
+import ProfileDetails from "./Components/Onboarding/ProfileDetails.jsx";
+import Prefrences from "./Components/Onboarding/Preferences.jsx";
 
 import Payment from "./Partner/Pages/Payment";
 import EbookPage from "./ExternalPages/EbookPage.jsx";
@@ -66,10 +74,41 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<DefaultPage />} />
-      <Route path="/signUp" element={<SignUp />} />
-      <Route path="/guest" element={<Input />} />
+      <Route path="/chatScreen" element={<ChatScreen />} />
+      <Route
+        path="/chathome"
+        element={
+          <GuestRoute>
+           
+            <ChatHome />{" "}
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signUp"
+        element={
+          <GuestRoute>
+            <SignUp />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/guest"
+        element={
+          <GuestRoute>
+            <Input />
+          </GuestRoute>
+        }
+      />
       <Route path="/citychat/:city" element={<CityChat />} />
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
       <Route path="/contact" element={<ContactUs />} />
       <Route path="/refundpolicy" element={<RefundPolicy />} />
       <Route path="/terms" element={<TermsAndConditions />} />
@@ -82,12 +121,35 @@ function App() {
       <Route path="/valantineCheckOut" element={<ValentineCheckout />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
-
+      //onboarding routes
+      <Route
+        path="/signUp/basicdetails"
+        element={
+          <GuestRoute>
+            <BasicDetails />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signUp/profiledetails"
+        element={
+          <GuestRoute>
+            <ProfileDetails />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signUp/preferences"
+        element={
+          <GuestRoute>
+            <Prefrences />
+          </GuestRoute>
+        }
+      />
       <Route
         path="/valantinePaymentSuccess"
         element={<ValentinePaymentSuccess />}
       />
-
       <Route
         path="/confession"
         element={
@@ -99,12 +161,11 @@ function App() {
       <Route
         path="/confession/create"
         element={
-          <ProtectedRoute> 
+          <ProtectedRoute>
             <CreateConfession />
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/confession/notifications"
         element={
@@ -121,7 +182,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/looking-for"
         element={
@@ -146,7 +206,14 @@ function App() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/homeClone"
+        element={
+          <ProtectedRoute>
+            <ChatHomeClone2 />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/Profile"
         element={
@@ -155,7 +222,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/partner/dashboard"
         element={
