@@ -46,7 +46,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://corsolo.com",
-    "https://www.corsolo.com"
+    "https://www.corsolo.com",
+    "https://corsolo-fawn.vercel.app"
   ],
   methods: ["GET","POST","PUT","PATCH","DELETE"],
   credentials: true
