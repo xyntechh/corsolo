@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Search } from "lucide-react";
 import Lottie from "lottie-react";
-import animationData from "../../Assets/animation.json";
+import animationData from "../../assets/animation.json";
 import { useUser } from "../../Context/UserContext";
 import { socket } from "../../socket.js";
 
