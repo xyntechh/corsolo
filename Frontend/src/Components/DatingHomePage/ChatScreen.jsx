@@ -243,9 +243,20 @@ export default function ChatScreen() {
         <div className="h-full min-h-0 w-full bg-[#1e1e26] flex flex-col relative">
           <div className="flex justify-between items-center px-4">
             <div className="shrink-0 px-4 sm:px-6 pt-6 pb-4 text-sm text-neutral-400 flex items-center justify-between">
-              <div>
-                You are now chatting with
-                <span className="text-fuchsia-400 font-semibold">
+              <div className="min-w-0">
+                You are now chatting with{" "}
+                <span
+                  className="
+      inline-block
+      max-w-[100px]
+      sm:max-w-[150px]
+      md:max-w-[200px]
+      truncate
+      align-bottom
+      text-fuchsia-400
+      font-semibold
+    "
+                >
                   {partnerName}
                 </span>
                 . Say hi!
