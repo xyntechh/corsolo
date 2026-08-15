@@ -241,21 +241,21 @@ export default function ChatScreen() {
         <SearchingScreen />
       ) : (
         <div className="h-full min-h-0 w-full bg-[#1e1e26] flex flex-col relative">
-          <div className="flex justify-between items-center px-4">
-            <div className="shrink-0 px-4 sm:px-6 pt-6 pb-4 text-sm text-neutral-400 flex items-center justify-between">
-              <div className="min-w-0">
+          <div className="flex items-center justify-between px-2 sm:px-4 min-w-0">
+            <div className="min-w-0 flex-1 px-2 sm:px-4 pt-4 sm:pt-6 pb-3 sm:pb-4 text-xs sm:text-sm text-neutral-400 flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1 leading-tight">
                 You are now chatting with{" "}
                 <span
                   className="
-      inline-block
-      max-w-[100px]
-      sm:max-w-[150px]
-      md:max-w-[200px]
-      truncate
-      align-bottom
-      text-fuchsia-400
-      font-semibold
-    "
+          inline-block
+          max-w-[80px]
+          sm:max-w-[150px]
+          md:max-w-[200px]
+          truncate
+          align-bottom
+          text-fuchsia-400
+          font-semibold
+        "
                 >
                   {partnerName}
                 </span>
@@ -265,10 +265,21 @@ export default function ChatScreen() {
               <button
                 disabled={requestSent}
                 onClick={sendFriendRequest}
-                className="ml-3 shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold
-               bg-purple-500 hover:bg-purple-600 active:bg-purple-700
-               text-white transition-colors duration-150
-               shadow-sm shadow-purple-500/30"
+                className="
+        shrink-0
+        px-2 py-1
+        sm:px-3 sm:py-1.5
+        rounded-md
+        text-[10px] sm:text-xs
+        font-semibold
+        bg-purple-500
+        hover:bg-purple-600
+        active:bg-purple-700
+        text-white
+        transition-colors duration-150
+        shadow-sm shadow-purple-500/30
+        whitespace-nowrap
+      "
               >
                 {requestSent ? "Request Sent" : "+ Add Friend"}
               </button>
