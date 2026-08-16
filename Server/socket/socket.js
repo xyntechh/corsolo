@@ -14,6 +14,7 @@ const {
 dotenv.config();
 
 const FriendRequest = require("../models/FriendRequest.js");
+const User = require("../models/user.model.js");
 
 const waitingUsers = new Map();
 const activeChats = new Map();
@@ -94,11 +95,40 @@ module.exports = (server) => {
     socket.join(roomId);
     partnerSocket.join(roomId);
 
+
+    const friendRequest = await FriendRequest.findOne({
+      $or: [
+        {
+          sender: data.userId,
+          receiver: partner.userId,
+          status: "pending",
+        },
+        {
+          sender: partner.userId,
+          receiver: data.userId,
+          status: "pending",
+        },
+      ],
+    });
+
+    const friend1Status = await getFriendStatus(
+      data.userId,
+      partner.userId
+    );
+
+
+    const friend2Status = await getFriendStatus(
+      partner.userId,
+      data.userId
+    );
+
     socket.emit("matched", {
       roomId,
       partnerName: partner.partnerName,
       partnerId: partner.userId,
       chatId: chat._id,
+      friendStatus: friend1Status,
+      friendRequestId: friendRequest?._id || null,
     });
 
     partnerSocket.emit("matched", {
@@ -106,6 +136,8 @@ module.exports = (server) => {
       partnerName: data.partnerName,
       partnerId: data.userId,
       chatId: chat._id,
+      friendStatus: friend2Status,
+      friendRequestId: friendRequest?._id || null,
     });
 
     activeChats.set(socket.id, { roomId, partnerSocketId: partner.socketId });
@@ -115,6 +147,48 @@ module.exports = (server) => {
     lastPartnerMap.delete(socket.id);
     lastPartnerMap.delete(partner.socketId);
   }
+
+
+  const getFriendStatus = async (userId, partnerId) => {
+    // 1. Already friends?
+    const user = await User.findById(userId).select("friends");
+
+    const isFriend = user?.friends?.some(
+      (id) => id.toString() === partnerId.toString()
+    );
+
+    if (isFriend) {
+      return "friends";
+    }
+
+    // 2. Check pending request
+    const request = await FriendRequest.findOne({
+      $or: [
+        {
+          sender: userId,
+          receiver: partnerId,
+          status: "pending",
+        },
+        {
+          sender: partnerId,
+          receiver: userId,
+          status: "pending",
+        },
+      ],
+    });
+
+    if (!request) {
+      return "none";
+    }
+
+    // Me -> Partner
+    if (request.sender.toString() === userId.toString()) {
+      return "pending_sent";
+    }
+
+    // Partner -> Me
+    return "pending_received";
+  };
 
 
 
@@ -453,23 +527,54 @@ module.exports = (server) => {
     //FRINED REQUEST
     socket.on("sendFriendRequest", async (data) => {
       try {
+        // Duplicate check
+        const existingRequest = await FriendRequest.findOne({
+          sender: data.senderId,
+          receiver: data.receiverId,
+          status: "pending",
+        });
+
+        if (existingRequest) {
+          socket.emit("friendRequestError", {
+            message: "Friend request already sent",
+          });
+          return;
+        }
+
+        // Create request
         const request = await FriendRequest.create({
           sender: data.senderId,
           receiver: data.receiverId,
         });
 
-        //  populate sender before sending over socket
-        const populatedRequest = await request.populate("sender", "name profilePicture");
+        const populatedRequest = await request.populate(
+          "sender",
+          "name profilePicture"
+        );
 
-        socket.emit("friendRequestSent");
+        // SENDER
+        socket.emit("friendRequestSent", {
+          requestId: request._id,
+          receiverId: data.receiverId,
+        });
 
-        const receiverSocketId = onlineUsers.get(data.receiverId);
+        // RECEIVER
+        const receiverSocketId = onlineUsers.get(
+          data.receiverId.toString()
+        );
 
         if (receiverSocketId) {
-          io.to(receiverSocketId).emit("newFriendRequest", populatedRequest);
+          io.to(receiverSocketId).emit(
+            "newFriendRequest",
+            populatedRequest
+          );
         }
       } catch (err) {
-        console.log(err);
+        console.log("sendFriendRequest:", err);
+
+        socket.emit("friendRequestError", {
+          message: "Failed to send friend request",
+        });
       }
     });
 
