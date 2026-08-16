@@ -92,7 +92,7 @@ function StartChatCard({
     const payload = {
       userId: user?._id,
       gender: user?.gender,
-      mode: gender,
+      mode: "random", // we will replace it when we actualyy put the logic of ques 
       lookingFor: user.lookingFor,
       partnerName: user?.name,
     };
