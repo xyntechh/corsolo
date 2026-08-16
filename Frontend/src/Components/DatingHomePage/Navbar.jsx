@@ -90,7 +90,7 @@ function Navbar({
             />
 
             <span className=" transition-colors duration-300 group-hover:text-orange-200">
-              5
+             {user?.coins ?? 0}
             </span>
           </button>
 
