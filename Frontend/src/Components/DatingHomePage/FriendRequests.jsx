@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { UserPlus, Check, X, MoreHorizontal } from "lucide-react";
 import { useUser } from "../../Context/UserContext";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import {
+  acceptFriendRequest,
+  rejectFriendRequest,
+} from "../../Apis/friendApi.js";
 
 function Avatar({ username = "" }) {
   const initial = username ? username.charAt(0).toUpperCase() : "?";
@@ -19,8 +22,7 @@ export default function FriendRequests() {
   const [loadingId, setLoadingId] = useState(null);
   const [rejectLoadingId, setRejectLoadingId] = useState(null);
 
-  const { friendRequests, getFriendRequest, setRefreshKey } =
-    useUser();
+  const { friendRequests, getFriendRequest, setRefreshKey , removeFriendRequest } = useUser();
   const token = localStorage.getItem("authToken");
 
   //GET FRINED REQUEST FROM APIS
@@ -46,22 +48,15 @@ export default function FriendRequests() {
     try {
       setLoadingId(requestId);
 
-      const res = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/api/user/friend-request/${requestId}/accept`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (res.data.success) {
+      const res = await acceptFriendRequest(requestId, token);
+
+      if (res.success) {
         toast.success("Friend request accepted");
-        setRequests((prev) =>
-          prev.filter((item) => item.requestId !== requestId),
-        );
+
+        removeFriendRequest(requestId); 
+
         getFriendRequest();
-        setRefreshKey((prev) => prev + 1); // ✅
+        setRefreshKey((prev) => prev + 1);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
@@ -74,22 +69,17 @@ export default function FriendRequests() {
     try {
       setRejectLoadingId(requestId);
 
-      const res = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/api/user/friend-request/${requestId}/reject`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (res.data.success) {
-        toast.success("Friend request accepted");
+      const res = await rejectFriendRequest(requestId, token);
+
+      if (res.success) {
+        toast.success("Friend request rejected");
+
         setRequests((prev) =>
           prev.filter((item) => item.requestId !== requestId),
         );
+
         getFriendRequest();
-        setRefreshKey((prev) => prev + 1); // ✅
+        setRefreshKey((prev) => prev + 1);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");

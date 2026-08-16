@@ -8,8 +8,7 @@ const perks = [
   { icon: Gift, label: "Send gifts" },
 ];
 
-// Bonus % is real info (bigger pack = better rate) — shown as a plain
-// "Save X%" chip, the way a SaaS pricing table shows annual savings.
+
 const packages = [
   { id: "infinity", coins: "Infinity", price: 999, note: "Unlimited, forever", popular: true },
   { id: "p199", coins: 199, price: 199, bonus: 0 },

@@ -107,6 +107,13 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+
+  const removeFriendRequest = (requestId) => {
+    setfriendRequests((prev) =>
+      prev.filter((request) => request._id !== requestId),
+    );
+  };
+
   useEffect(() => {
     getAccountDetails();
     getFriend();
@@ -155,6 +162,7 @@ export const UserProvider = ({ children }) => {
     setChatPreferences,
     isMatched,
     setIsMatched,
+    removeFriendRequest,
   };
 
   return <UserContext.Provider value={Value}>{children}</UserContext.Provider>;
