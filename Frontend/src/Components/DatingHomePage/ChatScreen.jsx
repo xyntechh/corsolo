@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
 import SearchingScreen from "./SearchingScreen.jsx";
 import { acceptFriendRequest } from "../../Apis/friendApi.js";
-import { Check, Clock, UserPlus } from "lucide-react";
+import { Check, Clock, UserPlus, Home } from "lucide-react";
 
 function groupMessages(list) {
   const groups = [];
@@ -405,12 +405,40 @@ export default function ChatScreen() {
           </div>
 
           <div className="shrink-0 px-4 sm:px-6 py-3 border-t border-white/10 flex items-center gap-2">
-            <button
-              onClick={() => setShowSkipOptions(true)}
-              className="px-3 py-2.5 rounded-md bg-orange-400 text-sm font-medium text-white transition-colors"
-            >
-              Skip
-            </button>
+            {/* Click anywhere outside to cancel the confirm state */}
+            {showSkipOptions && (
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowSkipOptions(false)}
+              />
+            )}
+
+            <div className="relative z-50 shrink-0">
+              {showSkipOptions && (
+                <button
+                  onClick={handleExitChat}
+                  className="absolute flex justify-center items-center gap-1 bottom-full left-0 mb-2 px-3 py-2.5 rounded-md bg-neutral-700 hover:bg-neutral-600 text-sm font-semibold text-white transition-colors whitespace-nowrap shadow-lg"
+                >
+                  <Home className="w-4 h-4 mr-1 inline-block" />
+                 <div>
+                   Home
+                 </div>
+                </button>
+              )}
+
+              <button
+                onClick={() =>
+                  showSkipOptions ? handleSkipConfirm() : setShowSkipOptions(true)
+                }
+                className={`px-3 py-2.5 rounded-md text-sm font-semibold text-white transition-colors whitespace-nowrap ${
+                  showSkipOptions
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-orange-400 hover:bg-orange-500"
+                }`}
+              >
+                {showSkipOptions ? "CONFIRM?" : "Skip"}
+              </button>
+            </div>
 
             <input
               value={input}
@@ -426,37 +454,6 @@ export default function ChatScreen() {
               Send
             </button>
           </div>
-
-          {showSkipOptions && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-[#1e1e26] border border-white/10 rounded-lg p-5 w-72 flex flex-col gap-3">
-                <p className="text-sm text-neutral-200 text-center font-medium">
-                  Kya karna chahte ho?
-                </p>
-
-                <button
-                  onClick={handleSkipConfirm}
-                  className="w-full py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
-                >
-                  Skip → New Chat
-                </button>
-
-                <button
-                  onClick={handleExitChat}
-                  className="w-full py-2 rounded-md bg-red-500 hover:bg-red-600 text-sm font-medium text-white transition-colors"
-                >
-                  Exit Chat → Home
-                </button>
-
-                <button
-                  onClick={() => setShowSkipOptions(false)}
-                  className="w-full py-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </>
