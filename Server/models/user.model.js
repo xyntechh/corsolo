@@ -152,6 +152,11 @@ const userSchema = new mongoose.Schema(
       default: Date.now,
     },
 
+    coins: {
+      type: Number,
+      default: 0,
+    },
+
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
