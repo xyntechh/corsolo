@@ -5,6 +5,7 @@ import { useUser } from "../../Context/UserContext";
 import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
+import InsufficientCoinsModal from "./InsufficientCoinsModal.jsx";
 
 const defaultInterests = ["Gardening", "Pets", "Science"];
 
@@ -33,8 +34,8 @@ const genderOptions = [
     premium: true,
   },
   {
-    key: "both",
-    label: "Both",
+    key: "random",
+    label: "Random",
     emoji: <Users size={22} className="text-purple-500" />,
     premium: false,
   },
@@ -63,36 +64,40 @@ const genderOptions = [
   },
 ];
 
+const REQUIRED_COINS = 10;
+
 function StartChatCard({
   interests = defaultInterests,
   setmanageInterstModal,
+  setShowPremium,
 }) {
   //states
   const [gender, setGender] = useState("both");
   const [loading, setLoading] = useState(false);
+  const [showInsufficientCoins, setShowInsufficientCoins] = useState(false);
 
   //CONTEXT
   const { user, setChatPreferences, isMatched, setIsMatched } = useUser();
 
   //first socket event
-
   const startChat = () => {
-    socket.emit("startChat", {
-      userId: user?._id,
-      gender: user?.gender,
-      mode: "random",
-      lookingFor: user.lookingFor,
-      partnerName: user?.name,
-    });
+    // Gate male/female chats behind the coin check — random stays free.
+    if (gender === "male" || gender === "female") {
+      if (user?.coins < REQUIRED_COINS) {
+        setShowInsufficientCoins(true);
+        return;
+      }
+    }
 
     const payload = {
       userId: user?._id,
       gender: user?.gender,
-      mode: "random",
+      mode: gender,
       lookingFor: user.lookingFor,
       partnerName: user?.name,
     };
 
+    socket.emit("startChat", payload);
     setChatPreferences(payload);
   };
 
@@ -256,6 +261,19 @@ function StartChatCard({
           </a>
         </p>
       </div>
+
+      {showInsufficientCoins && (
+        <InsufficientCoinsModal
+          requiredCoins={REQUIRED_COINS}
+          currentCoins={user?.coins ?? 0}
+          gender={gender}
+          onClose={() => setShowInsufficientCoins(false)}
+          onBuyCoins={() => {
+            setShowInsufficientCoins(false);
+            setShowPremium?.(true); // opens your coins/premium modal
+          }}
+        />
+      )}
     </div>
   );
 }

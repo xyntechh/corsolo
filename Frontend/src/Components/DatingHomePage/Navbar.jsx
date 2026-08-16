@@ -76,7 +76,7 @@ function Navbar({
         </div>
 
         {/* RIGHT — action icons */}
-        <div className="flex items-center gap-3  sm:gap-4 shrink-0">
+        <div className="flex items-center gap-1  sm:gap-4 shrink-0">
           <button
           onClick={() => setShowPremium(true)}
             type="button"
@@ -90,7 +90,7 @@ function Navbar({
             />
 
             <span className=" transition-colors duration-300 group-hover:text-orange-200">
-              5
+             {user?.coins ?? 0}
             </span>
           </button>
 
