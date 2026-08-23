@@ -15,6 +15,7 @@ export default function Sidebar({
   showSettingsModal,
   setshowSettingsModal,
   setShowPremium,
+  onSelectChat
 }) {
   const [showSettings, setShowSettings] = useState(false);
 
@@ -32,7 +33,7 @@ export default function Sidebar({
       <hr className="border-[#2c2c38] mx-4 mb-1" />
 
       <div className="flex-1 min-h-0 bg-[#25262D] overflow-y-auto">
-        <FriendList />
+        <FriendList onSelectChat={onSelectChat} />
       </div>
 
       {/* Premium / settings popups sit just above the footer */}

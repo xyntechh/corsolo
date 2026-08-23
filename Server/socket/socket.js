@@ -607,6 +607,10 @@ module.exports = (server) => {
     });
 
 
+    socket.on("joinRoom", (chatId) => {
+      socket.join(chatId);
+    });
+
 
 
 

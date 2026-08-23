@@ -27,6 +27,8 @@ function DatingHomePageClone() {
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
 
+  console.log(selectedChat);
+
   const { user, isMatched, setIsMatched } = useUser();
 
   //socket Logic
@@ -76,6 +78,11 @@ function DatingHomePageClone() {
               setshowSettingsModal={setshowSettingsModal}
               showPremium={showPremium}
               setShowPremium={setShowPremium}
+              onSelectChat={(chat) => {
+                setSelectedChat(chat);
+                setIsMatched(true); // taaki ChatScreen wala panel slide-in ho jaye
+                setShowCard(false); // sidebar overlay band ho jaye
+              }}
             />
           </div>
 
@@ -111,7 +118,11 @@ function DatingHomePageClone() {
       ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
     `}
             >
-              <ChatScreen friendId={selectedChat?.friendId} />
+              <ChatScreen
+                chatId={selectedChat?.chatId}
+                friendId={selectedChat?.friendId}
+                partnerName={selectedChat?.name}
+              />
             </div>
           </div>
 
@@ -171,6 +182,11 @@ function DatingHomePageClone() {
           showSettingsModal={showSettingsModal}
           setshowSettingsModal={setshowSettingsModal}
           setShowPremium={setShowPremium}
+          onSelectChat={(chat) => {
+            setSelectedChat(chat);
+            setIsMatched(true); // taaki ChatScreen wala panel slide-in ho jaye
+            setShowCard(false); // sidebar overlay band ho jaye
+          }}
         />
       </div>
 

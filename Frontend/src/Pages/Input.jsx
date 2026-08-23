@@ -186,14 +186,14 @@ function Input() {
                 <div className="flex gap-2 sm:gap-3">
                   <button
                     type="button"
-                    onClick={() => setLookingFor("Man")}
+                    onClick={() => setLookingFor("Men")}
                     className={`flex-1 py-3 rounded-xl font-semibold transition-colors border text-sm ${
-                      lookingFor === "Man"
+                      lookingFor === "Men"
                         ? "bg-purple-500 border-purple-500 text-white shadow-[0_0_14px_rgba(168,85,247,.3)]"
                         : "bg-white/5 border-white/10 text-gray-300 hover:border-purple-500/50 hover:bg-purple-500/10"
                     }`}
                   >
-                    Man
+                    Men
                   </button>
 
                   <button

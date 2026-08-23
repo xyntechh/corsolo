@@ -1,5 +1,6 @@
 import React from "react";
 import { useUser } from "../../Context/UserContext.jsx";
+import axios from "axios";
 
 function Avatar({ name, profilePicture }) {
   const firstLetter = name?.trim()?.charAt(0)?.toUpperCase() || "?";
@@ -21,12 +22,35 @@ function Avatar({ name, profilePicture }) {
   );
 }
 
-function FriendRow({ friend }) {
-  const { name, profilePicture, online } = friend;
+function FriendRow({ friend, onSelectChat }) {
+  const { name, profilePicture, online, _id, chatId } = friend;
+
+
+
+  const handleClick = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/chat/get-or-create-chat/${_id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (res.data.success) {
+        onSelectChat({
+          friendId: _id,
+          chatId: res.data?.chat._id,
+          name: name,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <button
       type="button"
+      onClick={handleClick}
       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2c2c38] transition-colors"
     >
       <div className="relative shrink-0">
@@ -48,16 +72,17 @@ function FriendRow({ friend }) {
   );
 }
 
-export default function FriendsList() {
+export default function FriendsList({ onSelectChat }) {
   const { friendList } = useUser();
 
-  
-
-  console.log(friendList);
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-2 py-1 space-y-0.5">
       {friendList.map((friend) => (
-        <FriendRow key={friend._id} friend={friend} />
+        <FriendRow
+          key={friend._id}
+          friend={friend}
+          onSelectChat={onSelectChat}
+        />
       ))}
     </div>
   );

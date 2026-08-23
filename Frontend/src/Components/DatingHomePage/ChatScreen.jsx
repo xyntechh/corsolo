@@ -7,6 +7,7 @@ import { ClipLoader } from "react-spinners";
 import SearchingScreen from "./SearchingScreen.jsx";
 import { acceptFriendRequest } from "../../Apis/friendApi.js";
 import { Check, Clock, UserPlus, Home } from "lucide-react";
+import axios from "axios";
 
 function groupMessages(list) {
   const groups = [];
@@ -104,7 +105,11 @@ function MessageGroup({ group }) {
   );
 }
 
-export default function ChatScreen() {
+export default function ChatScreen({
+  chatId: propChatId,
+  friendId: propFriendId,
+  partnerName: propPartnerName,
+}) {
   const [input, setInput] = useState("");
   const [messagess, setMessagess] = useState([]);
   const groups = groupMessages(messagess);
@@ -116,6 +121,7 @@ export default function ChatScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [friendRequestId, setFriendRequestId] = useState(null);
   const [friendStatus, setFriendStatus] = useState("none");
+  const [isFromHistory, setIsFromHistory] = useState(false);
 
   const { user, chatPreferences, setIsMatched, removeFriendRequest } =
     useUser();
@@ -136,6 +142,49 @@ export default function ChatScreen() {
     socket.emit("skipChat", chatPreferences);
   };
 
+  // Load old messages if chatId is provided
+  useEffect(() => {
+    if (!propChatId) return;
+
+    const fetchOldMessages = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/chat/chat-messages/${propChatId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        if (res.data.success) {
+          const formatted = res.data.messages.map((msg) => ({
+            id: msg._id,
+            sender: msg.sender._id === user?._id ? "me" : "them",
+            name: msg.sender._id === user?._id ? user?.name : msg.sender.name,
+            time: new Date(msg.createdAt).toLocaleTimeString(),
+            text: msg.message,
+          }));
+
+          setMessagess(formatted);
+          setChatId(propChatId);
+          setRoomId(propChatId); // 👈 YEH LINE ADD KARO
+          setpartnerId(propFriendId);
+          setpartnerName(propPartnerName);
+          // 👇 yahi naya logic hai
+          const isFriend = user?.friends?.some(
+            (friendId) => friendId.toString() === propFriendId?.toString(),
+          );
+
+          setIsFromHistory(!isFriend);
+          socket.emit("joinRoom", propChatId);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load chat messages.");
+      }
+    };
+
+    fetchOldMessages();
+  }, [propChatId]);
+
   useEffect(() => {
     const handleMatched = (data) => {
       setIsSearching(false);
@@ -146,6 +195,7 @@ export default function ChatScreen() {
       setMessagess([]);
       setFriendStatus(data.friendStatus);
       setFriendRequestId(data.friendRequestId || null);
+      setIsFromHistory(false);
     };
 
     const handleFriendRequestSent = (data) => {
@@ -405,54 +455,67 @@ export default function ChatScreen() {
           </div>
 
           <div className="shrink-0 px-4 sm:px-6 py-3 border-t border-white/10 flex items-center gap-2">
-            {/* Click anywhere outside to cancel the confirm state */}
-            {showSkipOptions && (
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowSkipOptions(false)}
-              />
-            )}
-
-            <div className="relative z-50 shrink-0">
-              {showSkipOptions && (
-                <button
-                  onClick={handleExitChat}
-                  className="absolute flex justify-center items-center gap-1 bottom-full left-0 mb-2 px-3 py-2.5 rounded-md bg-neutral-700 hover:bg-neutral-600 text-sm font-semibold text-white transition-colors whitespace-nowrap shadow-lg"
-                >
-                  <Home className="w-4 h-4 mr-1 inline-block" />
-                 <div>
-                   Home
-                 </div>
-                </button>
-              )}
-
+            {isFromHistory ? (
+              // 👇 History se khuli chat — sirf Home button
               <button
-                onClick={() =>
-                  showSkipOptions ? handleSkipConfirm() : setShowSkipOptions(true)
-                }
-                className={`px-3 py-2.5 rounded-md text-sm font-semibold text-white transition-colors whitespace-nowrap ${
-                  showSkipOptions
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-orange-400 hover:bg-orange-500"
-                }`}
+                onClick={() => setIsMatched(false)}
+                className="w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-sm font-semibold text-white transition-colors"
               >
-                {showSkipOptions ? "CONFIRM?" : "Skip"}
+                <Home className="w-4 h-4" />
+                Go to Home
               </button>
-            </div>
+            ) : (
+              // 👇 Live match — purana wala skip + input + send
+              <>
+                {showSkipOptions && (
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowSkipOptions(false)}
+                  />
+                )}
 
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Message..."
-              className="flex-1 bg-[#2c2c38] rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500"
-            />
-            <button
-              onClick={sendMessage}
-              className="px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
-            >
-              Send
-            </button>
+                <div className="relative z-50 shrink-0">
+                  {showSkipOptions && (
+                    <button
+                      onClick={handleExitChat}
+                      className="absolute flex justify-center items-center gap-1 bottom-full left-0 mb-2 px-3 py-2.5 rounded-md bg-neutral-700 hover:bg-neutral-600 text-sm font-semibold text-white transition-colors whitespace-nowrap shadow-lg"
+                    >
+                      <Home className="w-4 h-4 mr-1 inline-block" />
+                      <div>Home</div>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() =>
+                      showSkipOptions
+                        ? handleSkipConfirm()
+                        : setShowSkipOptions(true)
+                    }
+                    className={`px-3 py-2.5 rounded-md text-sm font-semibold text-white transition-colors whitespace-nowrap ${
+                      showSkipOptions
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-orange-400 hover:bg-orange-500"
+                    }`}
+                  >
+                    {showSkipOptions ? "CONFIRM?" : "Skip"}
+                  </button>
+                </div>
+
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  placeholder="Message..."
+                  className="flex-1 bg-[#2c2c38] rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <button
+                  onClick={sendMessage}
+                  className="px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
+                >
+                  Send
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
