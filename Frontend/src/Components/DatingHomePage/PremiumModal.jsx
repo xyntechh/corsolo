@@ -61,7 +61,7 @@ const token = localStorage.getItem("authToken");
     }
 
     if (user?.isGuest) {
-      navigate("/signup");
+      navigate("/signUp/basicdetails");
       return;
     }
 
