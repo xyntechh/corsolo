@@ -168,14 +168,14 @@ function Preferences() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#08080B] overflow-hidden text-white">
+    <div className="h-dvh w-full bg-[#08080B] overflow-hidden text-white flex flex-col">
       {/* Background Glow — same treatment as the rest of the app */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-purple-500/20 blur-[180px] rounded-full" />
-      <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 blur-[150px] rounded-full" />
-      <div className="pointer-events-none absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/10 blur-[150px] rounded-full" />
+      <div className="pointer-events-none fixed -top-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-purple-500/20 blur-[180px] rounded-full" />
+      <div className="pointer-events-none fixed bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 blur-[150px] rounded-full" />
+      <div className="pointer-events-none fixed bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/10 blur-[150px] rounded-full" />
 
-      <div className="relative z-10 w-full h-full flex items-center justify-center px-4 lg:px-10 py-6">
-        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-16 items-center h-full lg:h-auto">
+      <div className="relative z-10 flex-1 min-h-0 w-full flex items-center justify-center px-4 lg:px-10 py-4 sm:py-6">
+        <div className="w-full max-w-6xl h-full lg:h-auto grid lg:grid-cols-2 gap-16 items-center">
           {/* LEFT — desktop-only brand panel */}
           <div className="hidden lg:block">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm">
@@ -210,22 +210,22 @@ function Preferences() {
           </div>
 
           {/* RIGHT — preferences card */}
-          <div className="flex justify-center lg:justify-end h-full">
-            <div className="relative w-full max-w-md h-full lg:h-auto">
+          <div className="flex justify-center lg:justify-end h-full min-h-0">
+            <div className="relative w-full max-w-md h-full min-h-0 lg:h-auto">
               {/* Card glow */}
-              <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-[40px]" />
+              <div className="pointer-events-none absolute inset-0 bg-purple-500/20 blur-3xl rounded-[40px]" />
 
-              <div className="relative bg-[#0D0D11]/95 backdrop-blur-xl border border-purple-500/40 rounded-[28px] shadow-2xl flex flex-col h-full lg:h-auto lg:max-h-[85vh]">
+              <div className="relative bg-[#0D0D11]/95 backdrop-blur-xl border border-purple-500/40 rounded-[28px] shadow-2xl flex flex-col h-full min-h-0 lg:h-auto lg:max-h-[85vh]">
                 {/* Scrollable content */}
-                <div className="flex flex-col gap-6 p-6 sm:p-8 overflow-y-auto">
+                <div className="flex-1 min-h-0 flex flex-col gap-6 p-6 sm:p-8 overflow-y-auto overscroll-contain">
                   {/* Step indicator */}
-                  <div className="flex justify-center gap-2">
+                  <div className="flex justify-center gap-2 shrink-0">
                     <span className="h-1.5 w-8 rounded-full bg-purple-500" />
                     <span className="h-1.5 w-8 rounded-full bg-purple-500" />
                     <span className="h-1.5 w-8 rounded-full bg-purple-500" />
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 shrink-0">
                     <h1 className="text-xl sm:text-2xl font-bold text-center tracking-wide">
                       Preferences
                     </h1>
@@ -235,7 +235,7 @@ function Preferences() {
                   </div>
 
                   {/* Looking For */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 shrink-0">
                     <h3 className="text-sm font-semibold text-gray-200">
                       Looking For
                     </h3>
@@ -261,7 +261,7 @@ function Preferences() {
                   </div>
 
                   {/* Interested In */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 shrink-0">
                     <h3 className="text-sm font-semibold text-gray-200">
                       Interested In
                     </h3>
@@ -288,7 +288,7 @@ function Preferences() {
                   </div>
 
                   {/* Interests */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2.5 shrink-0">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-gray-200">
                         Your Interests
@@ -321,7 +321,7 @@ function Preferences() {
                 </div>
 
                 {/* Footer actions — pinned */}
-                <div className="flex flex-col gap-4 p-6 sm:p-8 pt-4 border-t border-white/10">
+                <div className="shrink-0 flex flex-col gap-4 p-6 sm:p-8 pt-4 border-t border-white/10">
                   <div className="flex gap-3">
                     <button
                       type="button"

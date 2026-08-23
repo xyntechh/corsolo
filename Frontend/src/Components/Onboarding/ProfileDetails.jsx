@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { useSignup } from "../../Context/SignupContext";
+import axios from "axios";
 
 const sideFeatures = [
   {
@@ -39,6 +40,7 @@ function ProfileDetails() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false); // 👈 naya state (optional, alag loading dikhane ke liye)
 
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -59,6 +61,24 @@ function ProfileDetails() {
     };
   }, []);
 
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+    );
+
+    const res = await axios.post(
+      `https://api.cloudinary.com/v1_1/${
+        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+      }/image/upload`,
+      formData,
+    );
+
+    return res.data.secure_url;
+  };
+
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -76,34 +96,40 @@ function ProfileDetails() {
     navigate(-1);
   };
 
+  // SECOND STEP OF THE SINGUP
+  const handleNext = async () => {
+    if (!bio || !country || !state || !city) {
+      toast.error("Please fill in all details!");
+      return;
+    }
 
-// SECOND STEP OF THE SINGUP
- const handleNext = async () => {
-  if (!bio || !country || !state || !city) {
-    toast.error("Please fill in all details!");
-    return;
-  }
+    setLoading(true);
 
-  setLoading(true);
+    try {
+      let profilePictureUrl = "";
 
-  try {
-    updateSignup({
-      bio,
-      country,
-      state,
-      city,
-      profilePicture: "", // You can implement the logic to handle the photo upload and set the profilePicture URL here
-    });
+      // 👇 agar user ne photo select ki hai, tabhi upload karo
+      if (photo) {
+        profilePictureUrl = await uploadToCloudinary(photo);
+      }
 
-    toast.success("Profile saved!");
-    navigate("/signup/preferences");
-  } catch (error) {
-    console.error("Profile details error:", error);
-    toast.error("Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+      updateSignup({
+        bio,
+        country,
+        state,
+        city,
+        profilePicture: profilePictureUrl, // 👈 ab yahan Cloudinary ka URL jayega
+      });
+
+      toast.success("Profile saved!");
+      navigate("/signup/preferences");
+    } catch (error) {
+      console.error("Profile details error:", error);
+      toast.error("Something went wrong while uploading photo");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 w-full h-full bg-[#08080B] overflow-hidden text-white">

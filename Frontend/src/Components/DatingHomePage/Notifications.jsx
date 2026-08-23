@@ -2,6 +2,10 @@ import { Bell, Heart, MessageCircle, Star, MoreHorizontal } from "lucide-react";
 
 // Dummy notification data — replace with real API data later
 const notifications = [
+
+];
+
+const notificationsdummy  = [
   {
     id: 1,
     type: "match",
@@ -52,7 +56,7 @@ export default function Notifications() {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-white/40 text-sm px-6 text-center">
             <Bell size={24} className="mb-2 opacity-50" />
-            Koi notification nahi hai
+            No notifications yet
           </div>
         ) : (
           notifications.map((n) => (
