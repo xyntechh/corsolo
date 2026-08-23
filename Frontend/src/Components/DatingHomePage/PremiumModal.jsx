@@ -1,5 +1,19 @@
 import { useState, useEffect } from "react";
-import { X, Coins, Check, MessageCircle, Sparkles, Heart, Gift, ShieldCheck , Gem} from "lucide-react";
+import {
+  X,
+  Coins,
+  Check,
+  MessageCircle,
+  Sparkles,
+  Heart,
+  Gift,
+  ShieldCheck,
+  Gem,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { useUser } from "../../Context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const perks = [
   { icon: MessageCircle, label: "Unlimited random chat" },
@@ -8,9 +22,14 @@ const perks = [
   { icon: Gift, label: "Send gifts" },
 ];
 
-
 const packages = [
-  { id: "infinity", coins: "Infinity", price: 999, note: "Unlimited, forever", popular: true },
+  {
+    id: "infinity",
+    coins: "Infinity",
+    price: 999,
+    note: "Unlimited, forever",
+    popular: true,
+  },
   { id: "p199", coins: 199, price: 199, bonus: 0 },
   { id: "p299", coins: 299, price: 299, bonus: 5 },
   { id: "p499", coins: 499, price: 499, bonus: 10 },
@@ -20,14 +39,64 @@ const packages = [
 
 export default function PremiumModal({ setShowPremium }) {
   const [selected, setSelected] = useState("infinity");
-
   const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
+
+  const { user, setOpenEmailPopup } = useUser();
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
 
   const close = () => setShowPremium(false);
+
+
+const token = localStorage.getItem("authToken");   
+
+ const handlePurchase = async () => {
+  try {
+    if (!selected) {
+      toast.error("Please select a coin package");
+      return;
+    }
+
+    if (user?.isGuest) {
+      navigate("/signup");
+      return;
+    }
+
+    // 👇 yeh add karo — selected id se poora package object nikal lo
+    const selectedPackage = packages.find((pkg) => pkg.id === selected);
+
+    if (!selectedPackage) {
+      toast.error("Invalid package selected");
+      return;
+    }
+
+    const paymentRes = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/payment/razorpay/payment-link`,
+      {
+        plan: selectedPackage.id,
+        email: user?.email,
+        amount: selectedPackage.price, // Razorpay paise mein chahta hai
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    toast.success("Redirecting to payment...");
+    const redirectUrl = paymentRes.data?.url;
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  } catch (error) {
+    console.error("Error:", error.response?.data || error.message);
+    toast.error("Something went wrong");
+  }
+};
 
   return (
     <div
@@ -98,7 +167,10 @@ export default function PremiumModal({ setShowPremium }) {
           </div>
 
           {/* CTA */}
-          <button className="w-full rounded-lg bg-purple-600 py-3 font-semibold text-white text-sm tracking-wide hover:bg-purple-500 active:scale-[0.99] transition">
+          <button
+            onClick={handlePurchase}
+            className="w-full rounded-lg bg-purple-600 py-3 font-semibold text-white text-sm tracking-wide hover:bg-purple-500 active:scale-[0.99] transition"
+          >
             Continue to payment
           </button>
           <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">
@@ -150,9 +222,7 @@ function PackageTile({ pkg, selected, onSelect }) {
       <p className="font-semibold text-white text-[13px] leading-none">
         {pkg.coins}
       </p>
-      <p className="text-[11px] text-neutral-500 leading-none">
-        ₹{pkg.price}
-      </p>
+      <p className="text-[11px] text-neutral-500 leading-none">₹{pkg.price}</p>
       {isInfinity && (
         <p className="hidden md:block text-[9px] text-neutral-600 leading-none mt-0.5">
           {pkg.note}
