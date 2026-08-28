@@ -187,13 +187,13 @@ exports.razorpayWebhook = async (req, res) => {
 
             if (plan === "unlimited") {
 
-                user.coins =  9999999999
+                user.coin =  9999999999
                 await user.save();
 
 
 
             } else {
-                user.coins = (user.coins || 0) + transaction.amount;
+                user.coin = (user.coin || 0) + transaction.amount;
                 await user.save();
 
             }
