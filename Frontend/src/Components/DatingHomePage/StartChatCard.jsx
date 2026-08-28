@@ -72,7 +72,7 @@ function StartChatCard({
   setShowPremium,
 }) {
   //states
-  const [gender, setGender] = useState("both");
+  const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [showInsufficientCoins, setShowInsufficientCoins] = useState(false);
 
@@ -82,8 +82,9 @@ function StartChatCard({
   //first socket event
   const startChat = () => {
     // Gate male/female chats behind the coin check — random stays free.
+    console.log(gender);
     if (gender === "male" || gender === "female") {
-      if (user?.coins < REQUIRED_COINS) {
+      if (user?.coin < REQUIRED_COINS) {
         setShowInsufficientCoins(true);
         return;
       }
@@ -92,12 +93,14 @@ function StartChatCard({
     const payload = {
       userId: user?._id,
       gender: user?.gender,
-      mode: "random", // we will replace it when we actualyy put the logic of ques 
+      mode: gender, // we will replace it when we actualyy put the logic of ques 
       lookingFor: user.lookingFor,
       partnerName: user?.name,
     };
 
     socket.emit("startChat", payload);
+
+    console.log("startChat payload:", payload);
     setChatPreferences(payload);
   };
 

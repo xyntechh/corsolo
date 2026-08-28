@@ -2,14 +2,10 @@ const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const queues = require("./queue.js");
 
+const chatsNew = require("../models/chatsNew.model.js");
+const Message = require("../models/message.model.js");
 
-const chatsNew = require("../models/chatsNew.model.js")
-const Message = require("../models/message.model.js")
-
-const {
-  setIO,
-  onlineUsers,
-} = require("./socketManager");
+const { setIO, onlineUsers } = require("./socketManager");
 
 dotenv.config();
 
@@ -20,13 +16,7 @@ const waitingUsers = new Map();
 const activeChats = new Map();
 const lastPartnerMap = new Map();
 
-
-
 module.exports = (server) => {
-
-
-
-  //CHECKING SOCKET CONNECTED AUR NOT
   const io = new Server(server, {
     cors: {
       origin: process.env.FRONTEND_URL,
@@ -35,47 +25,75 @@ module.exports = (server) => {
   });
 
   io.emit("onlineUsers", io.engine.clientsCount);
-
   setIO(io);
 
+  // ── HELPER 1: kisi socket ko SAARI queues (random + male + female) se remove karo
+  function removeFromAllQueues(socketId) {
+    for (const key of Object.keys(queues)) {
+      const index = queues[key].findIndex((u) => u.socketId === socketId);
+      if (index !== -1) queues[key].splice(index, 1);
+    }
+  }
 
-
+  // ── HELPER 2: user ko queue me daalo aur 30s ka timeout set karo
   function enqueueWaiting(io, socket, data) {
-    queues.random.push({ socketId: socket.id, ...data });
+    const entry = { socketId: socket.id, ...data };
+
+    // hamesha random queue me daalo
+    queues.random.push(entry);
+
+    // agar apna gender wali queue exist karti hai (male/female), usme bhi daalo
+    if (queues[data.gender]) {
+      queues[data.gender].push(entry);
+    }
 
     const timeout = setTimeout(() => {
-      const index = queues.random.findIndex(u => u.socketId === socket.id);
-      if (index !== -1) {
-        queues.random.splice(index, 1);
-        waitingUsers.delete(socket.id);
-        socket.emit("waitingOver");
-      }
+      removeFromAllQueues(socket.id);
+      waitingUsers.delete(socket.id);
+      socket.emit("waitingOver");
     }, 30000);
+
+    console.log(data.gender);
+    console.log(queues);
 
     waitingUsers.set(socket.id, { timeout });
     socket.emit("waitingForMatch", { waiting: true });
   }
 
-  // reusable matchmaking function
+  // ── HELPER 3: mutual match check — candidate bhi mujhse match karna chahta ho
+  function theyWantMe(candidate, myData) {
+    return candidate.mode === "random" || candidate.mode === myData.gender;
+  }
+
+  // ── MAIN MATCHING FUNCTION
   async function tryMatch(io, socket, data) {
-    if (queues.random.length === 0) {
+    console.log("🔎 Trying to match:", data);
+
+    const searchQueue =
+      data.mode === "random" ? queues.random : queues[data.mode];
+
+    if (!searchQueue || searchQueue.length === 0) {
       enqueueWaiting(io, socket, data);
       return;
     }
 
-    // ✅ apna last partner chhod ke koi aur candidate dhundo
     const lastPartnerId = lastPartnerMap.get(socket.id);
-    const candidateIndex = queues.random.findIndex(
-      (u) => u.socketId !== lastPartnerId
-    );
+
+    const candidateIndex = searchQueue.findIndex((u) => {
+      if (u.socketId === socket.id) return false;
+      if (u.socketId === lastPartnerId) return false;
+      return theyWantMe(u, data);
+    });
 
     if (candidateIndex === -1) {
-      // sirf wahi purana partner available hai -> match mat karo, wait karo
       enqueueWaiting(io, socket, data);
       return;
     }
 
-    const partner = queues.random.splice(candidateIndex, 1)[0];
+    const partner = searchQueue[candidateIndex];
+
+    removeFromAllQueues(partner.socketId);
+
     const partnerUser = waitingUsers.get(partner.socketId);
     if (partnerUser) {
       clearTimeout(partnerUser.timeout);
@@ -95,32 +113,15 @@ module.exports = (server) => {
     socket.join(roomId);
     partnerSocket.join(roomId);
 
-
     const friendRequest = await FriendRequest.findOne({
       $or: [
-        {
-          sender: data.userId,
-          receiver: partner.userId,
-          status: "pending",
-        },
-        {
-          sender: partner.userId,
-          receiver: data.userId,
-          status: "pending",
-        },
+        { sender: data.userId, receiver: partner.userId, status: "pending" },
+        { sender: partner.userId, receiver: data.userId, status: "pending" },
       ],
     });
 
-    const friend1Status = await getFriendStatus(
-      data.userId,
-      partner.userId
-    );
-
-
-    const friend2Status = await getFriendStatus(
-      partner.userId,
-      data.userId
-    );
+    const friend1Status = await getFriendStatus(data.userId, partner.userId);
+    const friend2Status = await getFriendStatus(partner.userId, data.userId);
 
     socket.emit("matched", {
       roomId,
@@ -143,231 +144,54 @@ module.exports = (server) => {
     activeChats.set(socket.id, { roomId, partnerSocketId: partner.socketId });
     activeChats.set(partner.socketId, { roomId, partnerSocketId: socket.id });
 
-    // ✅ naya match ho gaya, purani "last partner" restriction clear kardo
     lastPartnerMap.delete(socket.id);
     lastPartnerMap.delete(partner.socketId);
   }
 
-
   const getFriendStatus = async (userId, partnerId) => {
-    // 1. Already friends?
     const user = await User.findById(userId).select("friends");
 
     const isFriend = user?.friends?.some(
       (id) => id.toString() === partnerId.toString()
     );
 
-    if (isFriend) {
-      return "friends";
-    }
+    if (isFriend) return "friends";
 
-    // 2. Check pending request
     const request = await FriendRequest.findOne({
       $or: [
-        {
-          sender: userId,
-          receiver: partnerId,
-          status: "pending",
-        },
-        {
-          sender: partnerId,
-          receiver: userId,
-          status: "pending",
-        },
+        { sender: userId, receiver: partnerId, status: "pending" },
+        { sender: partnerId, receiver: userId, status: "pending" },
       ],
     });
 
-    if (!request) {
-      return "none";
-    }
+    if (!request) return "none";
 
-    // Me -> Partner
     if (request.sender.toString() === userId.toString()) {
       return "pending_sent";
     }
-
-    // Partner -> Me
     return "pending_received";
   };
 
-
-
-
-
-
   io.on("connection", (socket) => {
-    console.log("✅ User Connected"); //USER CONTTECTED 
-    console.log("Socket ID:", socket.id); // USER SOCKET ID 
-
+    console.log("✅ User Connected");
+    console.log("Socket ID:", socket.id);
 
     socket.on("registerUser", (userId) => {
-      if (!userId) {
-        return;
-      }
+      if (!userId) return;
       onlineUsers.set(userId, socket.id);
-
-      io.emit("onlineStatusChanged", {
-        userId,
-        online: true,
-      });
+      io.emit("onlineStatusChanged", { userId, online: true });
     });
 
-
-
-    //START FIRST CHAT 
     socket.on("startChat", async (data) => {
-
-
-      //validating the duplicate user in queues
-      /*   if (waitingUsers.has(socket.id)) {
-           return socket.emit("alreadyWaiting")
-         }
-   
-   
-         //checking the queues mode 
-         if (data.mode === "random") {
-   
-           //cheking queues is empty aur not 
-           if (queues.random.length === 0) {
-   
-             //if empty then adding in the queues
-             queues.random.push({
-               socketId: socket.id,
-               ...data
-             })
-   
-   
-   
-   
-             //seting the limit of 30 sec after 30 sec user will automactly removed from the queues
-             const timeout = setTimeout(() => {
-   
-               const index = queues.random.findIndex(
-                 user => user.socketId === socket.id
-               );
-   
-               if (index !== -1) {
-   
-                 // removed from queues
-                 queues.random.splice(index, 1);
-   
-                 // removefrom waiting list
-                 waitingUsers.delete(socket.id);
-   
-                 // sending a message to frontend
-                 socket.emit("waitingOver");
-   
-               }
-   
-             }, 30000);
-   
-   
-             //adiding in the watinguser validation
-             waitingUsers.set(socket.id, {
-   
-               timeout
-   
-             });
-   
-             //sending a message to frontend like we are wating a matched
-             socket.emit("waitingForMatch", {
-               waiting: true
-             });
-   
-             //if we found partner 
-           } else {
-             const partner = queues.random.shift();
-             const partnerUser = waitingUsers.get(partner.socketId);
-   
-   
-             if (partnerUser) {
-               clearTimeout(partnerUser.timeout);
-               waitingUsers.delete(partner.socketId);
-             }
-   
-   
-             waitingUsers.delete(socket.id);
-   
-   
-   
-   
-   
-   
-             //finding a partner socket id 
-             const partnerSocket = io.sockets.sockets.get(partner.socketId)
-             if (!partnerSocket) {
-               return;
-             }
-   
-             //creating a new chat in the database
-             const chat = await chatsNew.create({
-               participants: [data.userId, partner.userId],
-               chatType: "random"
-             });
-   
-   
-             //creating a RoomId
-             const roomId = chat._id.toString();
-   
-             //joining a both patner and current user in room
-   
-             socket.join(roomId)
-             partnerSocket.join(roomId)
-   
-   
-             //sending a message to frontend like we found a matched
-             socket.emit("matched", {
-               roomId,
-               partnerName: partner.partnerName,
-               partnerId: partner.userId,
-               chatId: chat._id,
-             });
-   
-             partnerSocket.emit("matched", {
-               roomId,
-               partnerName: data.partnerName,
-               partnerId: data.userId,
-               chatId: chat._id,
-             });
-   
-   
-             //adding in active chat 
-   
-             activeChats.set(socket.id, {
-               roomId,
-               partnerSocketId: partner.socketId
-             });
-   
-             activeChats.set(partner.socketId, {
-               roomId,
-               partnerSocketId: socket.id
-             });
-   
-   
-   
-   
-   
-   
-           }
-   
-         }
-   
-         */
-
-
-
       if (waitingUsers.has(socket.id)) {
         return socket.emit("alreadyWaiting");
       }
 
-      if (data.mode === "random") {
+      if (["random", "male", "female"].includes(data.mode)) {
         await tryMatch(io, socket, data);
       }
+    });
 
-    })
-
-
-    // SKIP -> current room chhodo, khud ko wapas queue me daalo, partner ko bhi bhej do
     socket.on("skipChat", async (data) => {
       const chat = activeChats.get(socket.id);
 
@@ -375,7 +199,6 @@ module.exports = (server) => {
         socket.leave(chat.roomId);
         activeChats.delete(socket.id);
 
-        // ✅ dono taraf record kar do ki abhi kiske sath the
         lastPartnerMap.set(socket.id, chat.partnerSocketId);
         lastPartnerMap.set(chat.partnerSocketId, socket.id);
 
@@ -390,7 +213,6 @@ module.exports = (server) => {
       await tryMatch(io, socket, data);
     });
 
-    // EXIT -> room chhodo, partner ko batao, khud requeue NAHI hoga
     socket.on("exitChat", () => {
       const chat = activeChats.get(socket.id);
 
@@ -406,78 +228,44 @@ module.exports = (server) => {
         }
       }
 
-      // agar khud queue me hi tha (edge case), usse bhi clean karo
-      const index = queues.random.findIndex(u => u.socketId === socket.id);
-      if (index !== -1) queues.random.splice(index, 1);
+      removeFromAllQueues(socket.id);
 
       const waiting = waitingUsers.get(socket.id);
       if (waiting) clearTimeout(waiting.timeout);
       waitingUsers.delete(socket.id);
     });
 
-
-    //DISCONNECT
     socket.on("disconnect", () => {
-
       const chat = activeChats.get(socket.id);
 
       if (chat) {
-
-        const partnerSocket =
-          io.sockets.sockets.get(chat.partnerSocketId);
-
+        const partnerSocket = io.sockets.sockets.get(chat.partnerSocketId);
         if (partnerSocket) {
           partnerSocket.emit("partnerDisconnected");
         }
-
         activeChats.delete(socket.id);
         activeChats.delete(chat.partnerSocketId);
       }
 
-      // queue remove
-      const index = queues.random.findIndex(
-        user => user.socketId === socket.id
-      );
+      removeFromAllQueues(socket.id);
 
-      if (index !== -1) {
-        queues.random.splice(index, 1);
-      }
-
-      // timer clear
       const user = waitingUsers.get(socket.id);
-
-      if (user) {
-        clearTimeout(user.timeout);
-      }
-
+      if (user) clearTimeout(user.timeout);
       waitingUsers.delete(socket.id);
 
-
-      //emit if the user was disconnected
       io.emit("onlineUsers", io.engine.clientsCount);
 
-
-
-      //removing from online user
       for (const [userId, socketId] of onlineUsers.entries()) {
         if (socketId === socket.id) {
           onlineUsers.delete(userId);
-          io.emit("onlineStatusChanged", {
-            userId,
-            online: false,
-          });
+          io.emit("onlineStatusChanged", { userId, online: false });
           break;
         }
       }
 
-
       lastPartnerMap.delete(socket.id);
-
-
     });
 
-
-    // SEND MESSAGE
     socket.on("sendMessage", async (data) => {
       try {
         const newMessage = await Message.create({
@@ -494,8 +282,6 @@ module.exports = (server) => {
           lastMessageAt: new Date(),
         });
 
-
-
         const messageObj = newMessage.toObject();
 
         io.to(data.roomId).emit("receiveMessage", {
@@ -509,25 +295,8 @@ module.exports = (server) => {
       }
     });
 
-
-    //GET HOW MUCH USER ARE ONLINE
-    io.on("connection", (socket) => {
-
-      io.emit("onlineUsers", io.engine.clientsCount);
-
-      socket.on("disconnect", () => {
-
-        io.emit("onlineUsers", io.engine.clientsCount);
-
-      });
-
-    });
-
-
-    //FRINED REQUEST
     socket.on("sendFriendRequest", async (data) => {
       try {
-        // Duplicate check
         const existingRequest = await FriendRequest.findOne({
           sender: data.senderId,
           receiver: data.receiverId,
@@ -541,7 +310,6 @@ module.exports = (server) => {
           return;
         }
 
-        // Create request
         const request = await FriendRequest.create({
           sender: data.senderId,
           receiver: data.receiverId,
@@ -552,76 +320,37 @@ module.exports = (server) => {
           "name profilePicture"
         );
 
-        // SENDER
         socket.emit("friendRequestSent", {
           requestId: request._id,
           receiverId: data.receiverId,
         });
 
-        // RECEIVER
-        const receiverSocketId = onlineUsers.get(
-          data.receiverId.toString()
-        );
+        const receiverSocketId = onlineUsers.get(data.receiverId.toString());
 
         if (receiverSocketId) {
-          io.to(receiverSocketId).emit(
-            "newFriendRequest",
-            populatedRequest
-          );
+          io.to(receiverSocketId).emit("newFriendRequest", populatedRequest);
         }
       } catch (err) {
         console.log("sendFriendRequest:", err);
-
         socket.emit("friendRequestError", {
           message: "Failed to send friend request",
         });
       }
     });
 
-
-    // CANCEL MATCH 
     socket.on("cancelMatch", () => {
-      // Queue se user remove
-      const index = queues.random.findIndex(
-        (user) => user.socketId === socket.id
-      );
+      removeFromAllQueues(socket.id);
 
-      if (index !== -1) {
-        queues.random.splice(index, 1);
-      }
-
-      // Waiting timer clear karo
       const waiting = waitingUsers.get(socket.id);
-
-      if (waiting) {
-        clearTimeout(waiting.timeout);
-      }
-
-      // Waiting users map se remove
+      if (waiting) clearTimeout(waiting.timeout);
       waitingUsers.delete(socket.id);
 
-      // Frontend ko batao ki cancel ho gaya
       socket.emit("matchCancelled");
-
       console.log(`❌ User ${socket.id} cancelled matchmaking`);
     });
-
 
     socket.on("joinRoom", (chatId) => {
       socket.join(chatId);
     });
-
-
-
-
-
-
-
-
   });
-
-
-
-
-
 };

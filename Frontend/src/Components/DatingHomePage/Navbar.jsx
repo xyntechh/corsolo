@@ -24,6 +24,8 @@ function Navbar({
   const { user, friendRequests, setfriendRequests, getFriendRequest } =
     useUser();
 
+    console.log(user)
+
   useEffect(() => {
     if (user?.isGuest) {
       setShowSignupNotification(true);
@@ -90,7 +92,7 @@ function Navbar({
             />
 
             <span className=" transition-colors duration-300 group-hover:text-orange-200">
-             {user?.coins ?? 0}
+             {user?.coin ?? 0}
             </span>
           </button>
 
