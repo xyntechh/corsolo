@@ -168,7 +168,6 @@ export default function ChatScreen({
           setRoomId(propChatId); // 👈 YEH LINE ADD KARO
           setpartnerId(propFriendId);
           setpartnerName(propPartnerName);
-          // 👇 yahi naya logic hai
           const isFriend = user?.friends?.some(
             (friendId) => friendId.toString() === propFriendId?.toString(),
           );
@@ -506,11 +505,11 @@ export default function ChatScreen({
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                   placeholder="Message..."
-                  className="flex-1 bg-[#2c2c38] rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="flex-1 min-w-0 bg-[#2c2c38] rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500"
                 />
                 <button
                   onClick={sendMessage}
-                  className="px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
+                  className="shrink-0 px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
                 >
                   Send
                 </button>
