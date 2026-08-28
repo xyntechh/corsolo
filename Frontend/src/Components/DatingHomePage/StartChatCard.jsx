@@ -7,6 +7,8 @@ import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
 import InsufficientCoinsModal from "./InsufficientCoinsModal.jsx";
 
+import axios from "axios";
+
 const defaultInterests = ["Gardening", "Pets", "Science"];
 
 const genderOptions = [
@@ -75,26 +77,54 @@ function StartChatCard({
   const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [showInsufficientCoins, setShowInsufficientCoins] = useState(false);
+  const { fetchUser } = useUser();
 
   //CONTEXT
   const { user, setChatPreferences, isMatched, setIsMatched } = useUser();
 
   //first socket event
-  const startChat = () => {
-    // Gate male/female chats behind the coin check — random stays free.
-    console.log(gender);
+  const startChat = async () => {
+    // Random free hai
     if (gender === "male" || gender === "female") {
-      if (user?.coin < REQUIRED_COINS) {
+      if ((user?.coin ?? 0) < REQUIRED_COINS) {
         setShowInsufficientCoins(true);
         return;
+      }
+
+      try {
+        const token = localStorage.getItem("authToken");
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/user/debit`,
+          {
+            coin: REQUIRED_COINS,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        console.log("Coin deducted:", response.data);
+        fetchUser(); // Update user data after coin deduction
+      } catch (error) {
+        console.error(
+          "Coin deduction failed:",
+          error.response?.data || error.message,
+        );
+
+        toast.error(error.response?.data?.message || "Unable to deduct coins");
+
+        return; // coin deduct nahi hua toh chat start mat karo
       }
     }
 
     const payload = {
       userId: user?._id,
       gender: user?.gender,
-      mode: gender, // we will replace it when we actualyy put the logic of ques 
-      lookingFor: user.lookingFor,
+      mode: gender,
+      lookingFor: user?.lookingFor,
       partnerName: user?.name,
     };
 

@@ -341,8 +341,6 @@ exports.debitUserCoin = async (req, res) => {
     ).select('-password'); // hide sensitive fields if any
 
     if (!updatedUser) {
-      // Could be user not found OR insufficient coins
-      // Check which for clearer message
       const userExists = await User.exists({ _id: userId });
       if (!userExists) {
         return res.status(404).json({ success: false, message: 'User not found' });
