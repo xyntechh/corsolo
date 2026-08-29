@@ -37,7 +37,7 @@ exports.uploadChatMedia = async (req, res) => {
     return res.status(200).json({
       success: true,
       url: req.file.path,
-      type: isAudio ? "audio" : "image",
+      messageType: isAudio ? "audio" : "image",
     });
 
   } catch (error) {

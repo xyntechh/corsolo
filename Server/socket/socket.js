@@ -272,12 +272,14 @@ module.exports = (server) => {
           chat: data.chatId,
           sender: data.senderId,
           receiver: data.receiverId,
-          message: data.message,
+          message: data.message || "null",
           delivered: true,
+          messageType: data.messageType || "text",
+          mediaUrl: data.mediaUrl || null,
         });
 
         await chatsNew.findByIdAndUpdate(data.chatId, {
-          lastMessage: data.message,
+          lastMessage: data.messageType === "text" ? data.message : `📎 ${data.messageType}`,
           lastMessageSender: data.senderId,
           lastMessageAt: new Date(),
         });
