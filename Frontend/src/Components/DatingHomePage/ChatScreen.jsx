@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Reply, Pencil, MoreVertical } from "lucide-react";
 import { socket } from "../../socket.js";
 import { useUser } from "../../Context/UserContext.jsx";
@@ -6,8 +6,94 @@ import toast from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
 import SearchingScreen from "./SearchingScreen.jsx";
 import { acceptFriendRequest } from "../../Apis/friendApi.js";
-import { Check, Clock, UserPlus, Home } from "lucide-react";
+import VoiceMessageBubble from "./VoiceMessageBubble.jsx";
+import {
+  Check,
+  Clock,
+  UserPlus,
+  Home,
+  Image as ImageIcon,
+  Mic,
+  Square,
+  Play,
+  Pause,
+  Trash2,
+  Send,
+} from "lucide-react";
 import axios from "axios";
+
+function waveBarColor(i, total) {
+  const t = i / Math.max(1, total - 1);
+  // 0 -> 0.5 -> 1 maps to orange(#FB923C) -> red(#EF4444) -> orange(#FB923C)
+  const mix = t < 0.5 ? t * 2 : (1 - t) * 2;
+  const from = [251, 146, 60]; // #FB923C
+  const to = [239, 68, 68]; // #EF4444
+  const r = Math.round(from[0] + (to[0] - from[0]) * mix);
+  const g = Math.round(from[1] + (to[1] - from[1]) * mix);
+  const b = Math.round(from[2] + (to[2] - from[2]) * mix);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function useRecordingEnvelope(barCount) {
+  return React.useMemo(() => {
+    let s = 11;
+    const rand = () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+    return Array.from({ length: barCount }, (_, i) => {
+      const t = i / Math.max(1, barCount - 1);
+      const envelope = Math.sin(Math.PI * t) * 0.8 + 0.2;
+      return Math.max(0.18, Math.min(1, envelope * (0.55 + rand() * 0.5)));
+    });
+  }, [barCount]);
+}
+
+function RecordingWaveform() {
+  const containerRef = React.useRef(null);
+  const [barCount, setBarCount] = useState(30);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const BAR_MIN_WIDTH = 3;
+    const GAP = 2;
+    const recalc = () => {
+      const width = el.clientWidth;
+      if (!width) return;
+      setBarCount(
+        Math.max(14, Math.floor((width + GAP) / (BAR_MIN_WIDTH + GAP))),
+      );
+    };
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const envelope = useRecordingEnvelope(barCount);
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex-1 min-w-0 flex items-center gap-[2px] h-6 overflow-hidden"
+    >
+      {envelope.map((h, i) => (
+        <span
+          key={i}
+          className="flex-1 rounded-full"
+          style={{
+            height: `${h * 100}%`,
+            backgroundColor: waveBarColor(i, envelope.length),
+            animation: `voiceWaveSmooth ${
+              0.85 + Math.abs(Math.sin(i * 1.7)) * 0.5
+            }s cubic-bezier(0.45,0,0.55,1) ${i * 0.035}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function groupMessages(list) {
   const groups = [];
@@ -77,7 +163,17 @@ function MessageGroup({ group }) {
               onMouseLeave={() => setHoveredId(null)}
               className="relative text-sm text-neutral-100 leading-relaxed break-words w-fit max-w-full pr-1"
             >
-              {msg.text}
+              {msg.messageType === "image" ? (
+                <img
+                  src={msg.mediaUrl}
+                  alt="sent image"
+                  className="max-w-[220px] sm:max-w-[280px] rounded-lg mt-1"
+                />
+              ) : msg.messageType === "audio" ? (
+                <VoiceMessageBubble src={msg.mediaUrl} isMe={isMe} />
+              ) : (
+                msg.text
+              )}
 
               <div
                 className={`absolute -top-9 right-0
@@ -122,7 +218,17 @@ export default function ChatScreen({
   const [friendRequestId, setFriendRequestId] = useState(null);
   const [friendStatus, setFriendStatus] = useState("none");
   const [isFromHistory, setIsFromHistory] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = React.useRef(null);
+  const audioChunksRef = React.useRef([]);
+  const [pendingUploads, setPendingUploads] = useState([]);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const discardRecordingRef = React.useRef(false);
 
+  //Token
+  const token = localStorage.getItem("authToken");
+
+  //context
   const { user, chatPreferences, setIsMatched, removeFriendRequest } =
     useUser();
 
@@ -161,6 +267,8 @@ export default function ChatScreen({
             name: msg.sender._id === user?._id ? user?.name : msg.sender.name,
             time: new Date(msg.createdAt).toLocaleTimeString(),
             text: msg.message,
+            messageType: msg.messageType || "text", // 👈 add karo
+            mediaUrl: msg.mediaUrl || null,
           }));
 
           setMessagess(formatted);
@@ -254,6 +362,7 @@ export default function ChatScreen({
 
   useEffect(() => {
     const handleReceive = (msg) => {
+      console.log(msg);
       setMessagess((prev) => [
         ...prev,
         {
@@ -262,6 +371,8 @@ export default function ChatScreen({
           name: msg.sender === user?._id ? user?.name : msg.senderName,
           time: new Date(msg.createdAt).toLocaleTimeString(),
           text: msg.message,
+          messageType: msg.messageType || "text",
+          mediaUrl: msg.mediaUrl || null,
         },
       ]);
     };
@@ -307,11 +418,7 @@ export default function ChatScreen({
     setIsMatched(false); //
   };
 
-  console.log("friendStatus", friendStatus);
-  console.log("friendRequestId", friendRequestId);
-
-  const token = localStorage.getItem("authToken");
-
+  //apis
   const handleAcceptFriend = async () => {
     if (!friendRequestId) {
       toast.error("Friend request not found");
@@ -329,6 +436,112 @@ export default function ChatScreen({
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     }
+  };
+
+  const uploadAndSend = async (file, type) => {
+    const tempId = `temp-${Date.now()}`;
+
+    //Local preview of image
+    const previewUrl = type === "image" ? URL.createObjectURL(file) : null;
+
+    //showing pending upload immiditealy before uploading
+    setPendingUploads((prev) => [...prev, { id: tempId, type, previewUrl }]);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/user/upload-chat-media`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        socket.emit("sendMessage", {
+          roomId,
+          message: "",
+          messageType: res.data.messageType, // "image" ya "audio"
+          mediaUrl: res.data.url,
+          senderName: user?.name,
+          senderId: user?._id,
+          chatId: chatId,
+          receiverId: partnerId,
+          receiverName: partnerName,
+        });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setPendingUploads((prev) => prev.filter((p) => p.id !== tempId));
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const startRecording = async () => {
+    setIsRecording(true); // optimistic — UI turant respond karta hai
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        if (discardRecordingRef.current) {
+          discardRecordingRef.current = false;
+          audioChunksRef.current = [];
+          return;
+        }
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, {
+          type: "audio/webm",
+        });
+        uploadAndSend(audioFile, "audio");
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+    } catch (err) {
+      setIsRecording(false); // permission deny hui to optimistic state revert
+      toast.error("Microphone access denied.");
+    }
+  };
+
+  useEffect(() => {
+    if (!isRecording) return;
+    setRecordingDuration(0);
+    const interval = setInterval(
+      () => setRecordingDuration((d) => d + 1),
+      1000,
+    );
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  const formatDuration = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const stopRecording = () => {
+    discardRecordingRef.current = false;
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  };
+
+  const cancelRecording = () => {
+    discardRecordingRef.current = true;
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
   };
 
   return (
@@ -451,11 +664,53 @@ export default function ChatScreen({
             {groups.map((group, i) => (
               <MessageGroup key={i} group={group} />
             ))}
+
+            {/* 👇 naya: pending uploads */}
+            {pendingUploads.map((p) => (
+              <div key={p.id} className="flex gap-3 px-4 sm:px-6 py-1">
+                <Avatar isMe={true} />
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="text-sm font-semibold text-indigo-300">
+                      {user?.name}
+                    </span>
+                  </div>
+
+                  {p.type === "image" ? (
+                    <div className="relative w-[220px] h-[160px] rounded-lg overflow-hidden bg-neutral-800 mt-1">
+                      {p.previewUrl && (
+                        <img
+                          src={p.previewUrl}
+                          alt="uploading"
+                          className="w-full h-full object-cover opacity-40 blur-[2px]"
+                        />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <ClipLoader color="#ffffff" size={26} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-[#2c2c38] rounded-full px-3 py-2 w-[200px] mt-1">
+                      <ClipLoader color="#a78bfa" size={16} />
+                      <span className="text-xs text-neutral-400">
+                        Sending voice note...
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="shrink-0 px-4 sm:px-6 py-3 border-t border-white/10 flex items-center gap-2">
+          <div className="shrink-0 px-3 sm:px-6 py-2.5 sm:py-3 border-t border-white/10 flex items-center gap-1.5 sm:gap-2">
+            <style>{`
+    @keyframes voiceWaveSmooth {
+      0%, 100% { transform: scaleY(0.28); }
+      50% { transform: scaleY(1); }
+    }
+  `}</style>
+
             {isFromHistory ? (
-              // 👇 History se khuli chat — sirf Home button
               <button
                 onClick={() => setIsMatched(false)}
                 className="w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-sm font-semibold text-white transition-colors"
@@ -464,7 +719,6 @@ export default function ChatScreen({
                 Go to Home
               </button>
             ) : (
-              // 👇 Live match — purana wala skip + input + send
               <>
                 {showSkipOptions && (
                   <div
@@ -490,7 +744,7 @@ export default function ChatScreen({
                         ? handleSkipConfirm()
                         : setShowSkipOptions(true)
                     }
-                    className={`px-3 py-2.5 rounded-md text-sm font-semibold text-white transition-colors whitespace-nowrap ${
+                    className={`px-2.5 sm:px-3 py-2.5 rounded-md text-sm font-semibold text-white transition-colors whitespace-nowrap ${
                       showSkipOptions
                         ? "bg-red-500 hover:bg-red-600"
                         : "bg-orange-400 hover:bg-orange-500"
@@ -500,19 +754,78 @@ export default function ChatScreen({
                   </button>
                 </div>
 
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  placeholder="Message..."
-                  className="flex-1 min-w-0 bg-[#2c2c38] rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="shrink-0 px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
-                >
-                  Send
-                </button>
+                {isRecording ? (
+                  <>
+                    {/* Cancel — discard without sending */}
+                    <button
+                      onClick={cancelRecording}
+                      aria-label="Cancel recording"
+                      className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-neutral-400 hover:text-red-400 hover:bg-white/5 transition-colors"
+                    >
+                      <Trash2 size={17} />
+                    </button>
+
+                    {/* Live recording bar — orange/red waveform, dark base like the reference */}
+                    <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-3 rounded-full pl-3.5 sm:pl-4 pr-3.5 sm:pr-4 py-2.5 bg-[#1e1b2e] border border-white/5 shadow-md">
+                      <span className="shrink-0 w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                      <span className="shrink-0 text-xs font-medium text-neutral-300 tabular-nums">
+                        {formatDuration(recordingDuration)}
+                      </span>
+                      <RecordingWaveform />
+                    </div>
+
+                    {/* Stop & send */}
+                    <button
+                      onClick={stopRecording}
+                      aria-label="Stop and send voice message"
+                      className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-orange-500 hover:bg-orange-400 text-white transition-colors ring-4 ring-orange-500/25"
+                    >
+                      <Square size={14} fill="white" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Input pill with image + mic icons embedded inside */}
+                    <div className="flex-1 min-w-0 flex items-center gap-0.5 bg-[#2c2c38] rounded-lg pl-1 sm:pl-1.5 pr-1 sm:pr-1.5 py-1.5 focus-within:ring-1 focus-within:ring-indigo-500 transition-shadow">
+                      <label className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
+                        <ImageIcon size={17} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) uploadAndSend(file, "image");
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+
+                      <input
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                        placeholder="Message..."
+                        className="flex-1 min-w-0 bg-transparent px-1 sm:px-1.5 text-sm text-neutral-100 placeholder-neutral-500 outline-none"
+                      />
+
+                      <button
+                        onClick={startRecording}
+                        aria-label="Record voice message"
+                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-teal-300 hover:bg-white/10 transition-colors"
+                      >
+                        <Mic size={17} />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={sendMessage}
+                      className="shrink-0 px-4 sm:px-5 py-2.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white transition-colors"
+                    >
+                      Send
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>
