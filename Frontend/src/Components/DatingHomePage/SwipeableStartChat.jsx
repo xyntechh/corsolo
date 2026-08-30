@@ -95,7 +95,7 @@ export default function SwipeableStartChat({ children }) {
         }`}
       >
         <ChevronDown size={18} className="text-purple-400  rotate-180" />
-        <span className="text-sm font-semibold text-white">Start Chat</span>
+        <span className="text-sm font-semibold text-white">Swipe up</span>
       </button>
 
       {/* Full card — handle + content move together as ONE unit */}
@@ -122,7 +122,7 @@ export default function SwipeableStartChat({ children }) {
             }`}
           />
           <span className="text-sm  font-semibold text-white">
-            Down Chat
+            Swioe down 
           </span>
         </div>
 

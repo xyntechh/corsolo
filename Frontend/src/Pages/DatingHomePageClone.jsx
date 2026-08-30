@@ -87,50 +87,57 @@ function DatingHomePageClone() {
             />
           </div>
 
-         {/* Main content */}
-<div
-  className={`
+          {/* Main content */}
+          <div
+            className={`
     flex-1 min-h-0 relative overflow-hidden
     transition-all duration-300 ease-in-out
     ${showMatchHistoryCard ? "lg:mr-72" : "mr-0"}
   `}
->
-  {/* Background list — poori width, sabse peeche (z-0) */}
-  <OnlineUsersBackdrop />
+          >
+            {/* Background list — poori width, sabse peeche (z-0) */}
+            <OnlineUsersBackdrop setShowPremium={setShowPremium} />
 
-  {/* Start Chat Screen — is par SwipeableStartChat rahega, z-10 se upar */}
-  <div
-    className={`
-      absolute inset-0 z-10
-      flex items-end justify-center
-      transition-all duration-500 ease-in-out
-      ${isMatched ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"}
-    `}
-  >
-    <SwipeableStartChat>
-      <StartChatCard
-        manageInterstModal={manageInterstModal}
-        setmanageInterstModal={setmanageInterstModal}
-      />
-    </SwipeableStartChat>
-  </div>
+            {/* Start Chat Screen — is par SwipeableStartChat rahega, z-10 se upar */}
+            {/* Start Chat Screen */}
+            <div
+              className={`
+    absolute inset-0 z-10
+    flex items-end justify-center
+    pointer-events-none
+    transition-all duration-500 ease-in-out
+    ${isMatched ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"}
+  `}
+            >
+              <div className="pointer-events-auto w-full">
+                <SwipeableStartChat>
+                  <StartChatCard
+                    manageInterstModal={manageInterstModal}
+                    setmanageInterstModal={setmanageInterstModal}
+                  />
+                </SwipeableStartChat>
+              </div>
+            </div>
 
-  {/* Chat Screen */}
-  <div
-    className={`
-      absolute inset-0 z-10
-      flex items-end justify-center
-      transition-all duration-500 ease-in-out
-      ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
-    `}
-  >
-    <ChatScreen
-      chatId={selectedChat?.chatId}
-      friendId={selectedChat?.friendId}
-      partnerName={selectedChat?.name}
-    />
-  </div>
-</div>
+            {/* Chat Screen — same fix */}
+            <div
+              className={`
+    absolute inset-0 z-10
+    flex items-end justify-center
+    pointer-events-none
+    transition-all duration-500 ease-in-out
+    ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
+  `}
+            >
+              <div className="pointer-events-auto w-full">
+                <ChatScreen
+                  chatId={selectedChat?.chatId}
+                  friendId={selectedChat?.friendId}
+                  partnerName={selectedChat?.name}
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Match History */}
           {/*   Match History Overlay */}
