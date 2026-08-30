@@ -1,0 +1,20 @@
+[33m3a0ffdf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnew[m[33m, [m[1;31morigin/new[m[33m)[m fix swipe bug
+[33m519f062[m add dummy users
+[33mad2d9f6[m fix last chat
+[33md927c5f[m add function intoh a fake users
+[33mf976506[m add fix things
+[33m9437295[m add new payment flow for the guest
+[33m17a859f[m add voice note and image sending section too
+[33m6f0fda3[m add setting model
+[33m413594a[m fix debit coin
+[33meae232d[m add total flow of que matching
+[33mfa6fc5f[m final fix the send button issue
+[33m8db82b3[m fix payment handler
+[33m641219a[m add payment also
+[33m6e75f2d[m fix whole frind list function
+[33mf2faee3[m temp add random in male and female queue
+[33mb41e036[m add coin show in navbar
+[33m87336ec[m add eror component when coin is enough
+[33m7e570c1[m fix skip buttn
+[33md7070b1[m fix all friend request flow
+[33mc1da6f4[m fix payment card

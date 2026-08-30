@@ -8,6 +8,7 @@ import MatchHistory from "../Components/DatingHomePage/MatchHistoy.jsx";
 import Notifications from "../Components/DatingHomePage/Notifications.jsx";
 import FriendRequests from "../Components/DatingHomePage/FriendRequests.jsx";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SettingsModal from "../Components/DatingHomePage/SettingsModal.jsx";
 import ChatScreen from "../Components/DatingHomePage/ChatScreen.jsx";
 import { socket } from "../socket.js";
@@ -15,9 +16,7 @@ import toast from "react-hot-toast";
 import { useUser } from "../Context/UserContext.jsx";
 import PremiumModal from "../Components/DatingHomePage/PremiumModal.jsx";
 import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsModal.jsx";
-import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetails.jsx";
-import SwipeableStartChat from "../Components/DatingHomePage/SwipeableStartChat.jsx";
-import OnlineUsersBackdrop from "../Components/DatingHomePage/OnlineUsersBackdrop.jsx";
+import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetailsComponent.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -29,8 +28,6 @@ function DatingHomePageClone() {
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
-  // naya state add karo top pe, baaki states ke saath
-  const [isStartChatOpen, setIsStartChatOpen] = useState(true);
 
   const { user, isMatched, setIsMatched } = useUser();
 
@@ -97,50 +94,35 @@ function DatingHomePageClone() {
     ${showMatchHistoryCard ? "lg:mr-72" : "mr-0"}
   `}
           >
-            {/* Background list — poori width, sabse peeche (z-0) */}
-            <OnlineUsersBackdrop
-              setShowPremium={setShowPremium}
-              isCardOpen={isStartChatOpen}
-            />
-
-            {/* Start Chat Screen — is par SwipeableStartChat rahega, z-10 se upar */}
             {/* Start Chat Screen */}
             <div
               className={`
-    absolute inset-0 z-10
-    flex items-end justify-center
-    pointer-events-none
-    transition-all duration-500 ease-in-out
-    ${isMatched ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"}
-  `}
+      absolute inset-0
+      flex items-end justify-center
+      transition-all duration-500 ease-in-out
+      ${isMatched ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"}
+    `}
             >
-              <div className="pointer-events-auto w-full">
-                <SwipeableStartChat onOpenChange={setIsStartChatOpen}>
-                  <StartChatCard
-                    manageInterstModal={manageInterstModal}
-                    setmanageInterstModal={setmanageInterstModal}
-                  />
-                </SwipeableStartChat>
-              </div>
+              <StartChatCard
+                manageInterstModal={manageInterstModal}
+                setmanageInterstModal={setmanageInterstModal}
+              />
             </div>
 
-            {/* Chat Screen — same fix */}
+            {/* Chat Screen */}
             <div
               className={`
-    absolute inset-0 z-10
-    flex items-end justify-center
-    pointer-events-none
-    transition-all duration-500 ease-in-out
-    ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
-  `}
+      absolute inset-0 
+      flex items-end justify-center
+      transition-all duration-500 ease-in-out
+      ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
+    `}
             >
-              <div className="pointer-events-auto w-full">
-                <ChatScreen
-                  chatId={selectedChat?.chatId}
-                  friendId={selectedChat?.friendId}
-                  partnerName={selectedChat?.name}
-                />
-              </div>
+              <ChatScreen
+                chatId={selectedChat?.chatId}
+                friendId={selectedChat?.friendId}
+                partnerName={selectedChat?.name}
+              />
             </div>
           </div>
 

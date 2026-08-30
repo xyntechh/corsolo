@@ -16,8 +16,7 @@ function Navbar({
   setShowNotificationsCard,
   showFriendRequestsCard,
   setShowFriendRequestsCard,
-  setShowPremium,
-  setGuestPaymentDetails,
+  setShowPremium
 }) {
   const [showBadgeDot, setShowBadgeDot] = useState(true);
   const [showSignupNotification, setShowSignupNotification] = useState(false);
