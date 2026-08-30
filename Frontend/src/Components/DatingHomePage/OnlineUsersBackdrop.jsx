@@ -1,4 +1,5 @@
 import { MessageCircle, Coins } from "lucide-react";
+import { useUser } from "../../Context/UserContext";
 
 // Dummy data — real app mein ye backend/socket se aayega
 const users = [
@@ -44,23 +45,34 @@ function StatusBadge({ status }) {
   );
 }
 
-function UserRow({ user, index }) {
+function UserRow({ rowUser, index , setShowPremium }) {
   const gradient = avatarGradients[index % avatarGradients.length];
+  const { user } = useUser();
+
+  const handleChatbutton = () =>{
+
+    if(user?.coin < 10) {
+
+      setShowPremium(true)
+
+    }
+   
+  }
 
   return (
-    <div className="group flex items-center justify-between gap-3 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl px-4 py-3 transition-colors duration-200">
+    <div className="group flex items-center justify-between gap-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-xl px-3 py-2.5 transition-colors duration-200">
       {/* Avatar + name + status */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
         <div
-          className={`w-10 h-10 shrink-0 rounded-full bg-gradient-to-br ${gradient} bg-[#20202a] flex items-center justify-center text-white/90 font-semibold text-sm ring-1 ring-white/10`}
+          className={`w-9 h-9 shrink-0 rounded-full bg-gradient-to-br ${gradient} bg-[#20202a] flex items-center justify-center text-white/90 font-semibold text-xs ring-1 ring-white/10`}
         >
-          {user.name.charAt(0)}
+          {rowUser.name.charAt(0)}
         </div>
         <div className="min-w-0">
-          <p className="text-gray-200 font-medium text-sm truncate">
-            {user.name}
+          <p className="text-gray-200 font-medium text-[13px] truncate">
+            {rowUser.name}
           </p>
-          <StatusBadge status={user.status} />
+          <StatusBadge status={rowUser.status} />
         </div>
       </div>
 
@@ -68,16 +80,17 @@ function UserRow({ user, index }) {
       <div className="flex items-center gap-1.5 shrink-0">
         <button
           type="button"
-          className="flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 text-gray-400 text-[11px] font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+          className="flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 text-gray-400 text-[10.5px] font-medium px-2 py-1.5 rounded-lg transition-colors"
         >
-          <Coins size={12} className="text-yellow-500/70" />
+          <Coins size={11} className="text-yellow-500/70" />
           10
         </button>
         <button
+        onClick={handleChatbutton}
           type="button"
-          className="flex items-center gap-1 bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/20 text-purple-200 text-[11px] font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+          className="flex items-center gap-1 bg-purple-600/25 hover:bg-purple-600/60 border border-purple-500/20 hover:border-purple-400/40 text-purple-200 hover:text-white text-[10.5px] font-medium px-2.5 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-md hover:shadow-purple-500/20 active:scale-95"
         >
-          <MessageCircle size={12} />
+          <MessageCircle size={11} />
           Chat
         </button>
       </div>
@@ -85,13 +98,13 @@ function UserRow({ user, index }) {
   );
 }
 
-export default function OnlineUsersBackdrop() {
+export default function OnlineUsersBackdrop( {setShowPremium}) {
   return (
     <div className="absolute inset-0 z-0 overflow-y-auto px-4 sm:px-7 pt-4 pb-2 hide-scrollbar">
       {/* Poori list ko thoda dim rakha hai — background hai, hero element nahi */}
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 opacity-80">
-        {users.map((user, index) => (
-          <UserRow key={user.name} user={user} index={index} />
+      <div className="w-100 max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 gap-y-2 opacity-80">
+        {users.map((rowUser, index) => (
+          <UserRow key={rowUser.name} rowUser={rowUser} index={index} setShowPremium={setShowPremium} />
         ))}
       </div>
 
