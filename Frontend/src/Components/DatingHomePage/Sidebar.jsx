@@ -60,7 +60,7 @@ export default function Sidebar({
             className="hover:text-white transition-colors cursor-pointer"
           />
           <button
-            onClick={() => setshowSettingsModal(true)}
+           // onClick={() => setshowSettingsModal(true)}
             className="hover:text-white transition-colors"
           >
             <Settings size={16} />

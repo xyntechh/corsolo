@@ -13,6 +13,7 @@ export const UserProvider = ({ children }) => {
   const [friendList, setfriendList] = useState([]);
   const [chatPreferences, setChatPreferences] = useState(null);
   const [isMatched, setIsMatched] = useState(false);
+  const [selected, setSelected] = useState("infinity"); //THIS STATE FOR THE SELCETED COIN PLAN
 
   const fetchUser = async () => {
     try {
@@ -107,7 +108,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-
   const removeFriendRequest = (requestId) => {
     setfriendRequests((prev) =>
       prev.filter((request) => request._id !== requestId),
@@ -145,6 +145,21 @@ export const UserProvider = ({ children }) => {
     };
   }, []);
 
+  const packages = [
+    {
+      id: "infinity",
+      coins: "Infinity",
+      price: 999,
+      note: "Unlimited, forever",
+      popular: true,
+    },
+    { id: "p199", coins: 199, price: 199, bonus: 0 },
+    { id: "p299", coins: 299, price: 299, bonus: 5 },
+    { id: "p499", coins: 499, price: 499, bonus: 10 },
+    { id: "p799", coins: 799, price: 799, bonus: 15 },
+    { id: "p999", coins: 999, price: 999, bonus: 20 },
+  ];
+
   const Value = {
     user,
     loading,
@@ -163,6 +178,9 @@ export const UserProvider = ({ children }) => {
     isMatched,
     setIsMatched,
     removeFriendRequest,
+    selected,
+    setSelected,
+    packages,
   };
 
   return <UserContext.Provider value={Value}>{children}</UserContext.Provider>;
