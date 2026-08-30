@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { useUser } from "../Context/UserContext.jsx";
 import PremiumModal from "../Components/DatingHomePage/PremiumModal.jsx";
 import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsModal.jsx";
+import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetails.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -26,8 +27,7 @@ function DatingHomePageClone() {
   const [showPremium, setShowPremium] = useState(false);
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
-
-  console.log(selectedChat);
+  const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
 
   const { user, isMatched, setIsMatched } = useUser();
 
@@ -297,7 +297,12 @@ function DatingHomePageClone() {
       </>
 
       {/* Premium Modal — Payment Card */}
-      {showPremium && <PremiumModal setShowPremium={setShowPremium} />}
+      {showPremium && (
+        <PremiumModal
+          setGuestPaymentDetails={setGuestPaymentDetails}
+          setShowPremium={setShowPremium}
+        />
+      )}
 
       {/* Manage INterst Modal Card */}
       <>
@@ -348,6 +353,59 @@ function DatingHomePageClone() {
           <ManageInterestsModal
             manageInterstModal={manageInterstModal}
             setmanageInterstModal={setmanageInterstModal}
+          />
+        </div>
+      </>
+
+      {/*Email and password card that only shows when user is guest and want to buy a coins*/}
+      <>
+        {/* Overlay - only mounted when the modal is actually open, so it can never block clicks while closed */}
+        {GuestPaymentDetails && (
+          <div
+            onClick={() => setGuestPaymentDetails(false)}
+            className="fixed inset-0 bg-black/60 z-[90]"
+          />
+        )}
+
+        {/* Desktop */}
+        <div
+          className={`
+      hidden lg:flex
+      fixed inset-0
+      items-center justify-center
+      z-[100]
+      transition-all duration-300
+      ${
+        GuestPaymentDetails
+          ? "opacity-100 scale-100"
+          : "opacity-0 scale-95 pointer-events-none"
+      }
+    `}
+        >
+          <GuestPaymentDetailsComponent
+            GuestPaymentDetails={GuestPaymentDetails}
+            setGuestPaymentDetails={setGuestPaymentDetails}
+          />
+        </div>
+
+        {/* Mobile: pointer-events-none added when closed, so the offscreen sheet
+            can never intercept taps meant for the sidebar's footer buttons */}
+        <div
+          className={`
+      lg:hidden
+      fixed left-0 right-0 bottom-0
+      z-[100]
+      transition-transform duration-300
+      ${
+        GuestPaymentDetails
+          ? "translate-y-0 pointer-events-auto"
+          : "translate-y-full pointer-events-none"
+      }
+    `}
+        >
+          <GuestPaymentDetailsComponent
+            GuestPaymentDetails={GuestPaymentDetails}
+            setGuestPaymentDetails={setGuestPaymentDetails}
           />
         </div>
       </>

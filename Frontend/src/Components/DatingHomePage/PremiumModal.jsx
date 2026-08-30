@@ -22,27 +22,16 @@ const perks = [
   { icon: Gift, label: "Send gifts" },
 ];
 
-const packages = [
-  {
-    id: "infinity",
-    coins: "Infinity",
-    price: 999,
-    note: "Unlimited, forever",
-    popular: true,
-  },
-  { id: "p199", coins: 199, price: 199, bonus: 0 },
-  { id: "p299", coins: 299, price: 299, bonus: 5 },
-  { id: "p499", coins: 499, price: 499, bonus: 10 },
-  { id: "p799", coins: 799, price: 799, bonus: 15 },
-  { id: "p999", coins: 999, price: 999, bonus: 20 },
-];
 
-export default function PremiumModal({ setShowPremium }) {
-  const [selected, setSelected] = useState("infinity");
+
+export default function PremiumModal({
+  setShowPremium,
+  setGuestPaymentDetails,
+}) {
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
-  const { user, setOpenEmailPopup } = useUser();
+  const { user, setOpenEmailPopup, selected, setSelected  , packages} = useUser();
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
@@ -50,53 +39,53 @@ export default function PremiumModal({ setShowPremium }) {
 
   const close = () => setShowPremium(false);
 
+  const token = localStorage.getItem("authToken");
 
-const token = localStorage.getItem("authToken");   
+  //THIS IS THE PREMIUM USER PURCHASE
+  const handlePurchase = async () => {
+    try {
+      if (!selected) {
+        toast.error("Please select a coin package");
+        return;
+      }
 
- const handlePurchase = async () => {
-  try {
-    if (!selected) {
-      toast.error("Please select a coin package");
-      return;
-    }
+      if (user?.isGuest) {
+        setGuestPaymentDetails(true);
+        setShowPremium(false);
+        return;
+      }
 
-    if (user?.isGuest) {
-      navigate("/signUp/basicdetails");
-      return;
-    }
+      const selectedPackage = packages.find((pkg) => pkg.id === selected);
 
-    // 👇 yeh add karo — selected id se poora package object nikal lo
-    const selectedPackage = packages.find((pkg) => pkg.id === selected);
+      if (!selectedPackage) {
+        toast.error("Invalid package selected");
+        return;
+      }
 
-    if (!selectedPackage) {
-      toast.error("Invalid package selected");
-      return;
-    }
-
-    const paymentRes = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/payment/razorpay/payment-link`,
-      {
-        plan: selectedPackage.id,
-        email: user?.email,
-        amount: selectedPackage.price, // Razorpay paise mein chahta hai
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const paymentRes = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/payment/razorpay/payment-link`,
+        {
+          plan: selectedPackage.id,
+          email: user?.email,
+          amount: selectedPackage.price, // Razorpay paise mein chahta hai
         },
-      },
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-    toast.success("Redirecting to payment...");
-    const redirectUrl = paymentRes.data?.url;
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
+      toast.success("Redirecting to payment...");
+      const redirectUrl = paymentRes.data?.url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      }
+    } catch (error) {
+      console.error("Error:", error.response?.data || error.message);
+      toast.error("Something went wrong");
     }
-  } catch (error) {
-    console.error("Error:", error.response?.data || error.message);
-    toast.error("Something went wrong");
-  }
-};
+  };
 
   return (
     <div
