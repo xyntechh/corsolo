@@ -34,7 +34,6 @@ function waveBarColor(i, total) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-
 function useRecordingEnvelope(barCount) {
   return React.useMemo(() => {
     let s = 11;
