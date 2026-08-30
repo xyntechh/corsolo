@@ -29,6 +29,8 @@ function DatingHomePageClone() {
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
+  // naya state add karo top pe, baaki states ke saath
+  const [isStartChatOpen, setIsStartChatOpen] = useState(true);
 
   const { user, isMatched, setIsMatched } = useUser();
 
@@ -96,7 +98,10 @@ function DatingHomePageClone() {
   `}
           >
             {/* Background list — poori width, sabse peeche (z-0) */}
-            <OnlineUsersBackdrop setShowPremium={setShowPremium} />
+            <OnlineUsersBackdrop
+              setShowPremium={setShowPremium}
+              isCardOpen={isStartChatOpen}
+            />
 
             {/* Start Chat Screen — is par SwipeableStartChat rahega, z-10 se upar */}
             {/* Start Chat Screen */}
@@ -110,7 +115,7 @@ function DatingHomePageClone() {
   `}
             >
               <div className="pointer-events-auto w-full">
-                <SwipeableStartChat>
+                <SwipeableStartChat onOpenChange={setIsStartChatOpen}>
                   <StartChatCard
                     manageInterstModal={manageInterstModal}
                     setmanageInterstModal={setmanageInterstModal}

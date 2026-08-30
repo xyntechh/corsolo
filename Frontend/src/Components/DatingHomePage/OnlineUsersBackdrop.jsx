@@ -1,24 +1,24 @@
-import { MessageCircle, Coins } from "lucide-react";
+import { useState } from "react";
+import { MessageCircle, Coins, Loader2 } from "lucide-react";
 import axios from "axios";
 
 import { useUser } from "../../Context/UserContext";
 import { socket } from "../../socket";
 import toast from "react-hot-toast";
 
-// Dummy data — real app mein backend/socket se aayega
 const users = [
-  { name: "Priya", status: "live" },
-  { name: "Ananya", status: "online" },
-  { name: "Sneha", status: "live" },
-  { name: "Kavya", status: "online" },
-  { name: "Riya", status: "online" },
-  { name: "Isha", status: "live" },
-  { name: "Meera", status: "online" },
-  { name: "Tanvi", status: "live" },
-  { name: "Pooja", status: "online" },
-  { name: "Neha", status: "online" },
-  { name: "Aisha", status: "live" },
-  { name: "Divya", status: "online" },
+  { name: "Aarohi", status: "live" },
+  { name: "Zara", status: "online" },
+  { name: "Myra", status: "live" },
+  { name: "Anaya", status: "online" },
+  { name: "Kiara", status: "online" },
+  { name: "Ivy", status: "live" },
+  { name: "Reyna", status: "online" },
+  { name: "Aria", status: "live" },
+  { name: "Navya", status: "online" },
+  { name: "Zoya", status: "online" },
+  { name: "Anvi", status: "live" },
+  { name: "Kimaya", status: "online" },
 ];
 
 const avatarGradients = [
@@ -37,35 +37,33 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[10.5px] font-medium tracking-wide ${
-        isLive ? "text-red-400/80" : "text-emerald-400/80"
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-[1px] text-[10px] font-semibold tracking-wide ${
+        isLive
+          ? "bg-red-500/10 text-red-400"
+          : "bg-emerald-500/10 text-emerald-400"
       }`}
     >
       <span
         className={`w-1.5 h-1.5 rounded-full ${
-          isLive
-            ? "bg-red-400/80 animate-pulse"
-            : "bg-emerald-400/80"
+          isLive ? "bg-red-400 animate-pulse" : "bg-emerald-400"
         }`}
       />
-
       {isLive ? "Live" : "Online"}
     </span>
   );
 }
 
 function UserRow({ rowUser, index, setShowPremium }) {
-  const gradient =
-    avatarGradients[index % avatarGradients.length];
+  const gradient = avatarGradients[index % avatarGradients.length];
+  const isLive = rowUser.status === "live";
+  const [loading, setLoading] = useState(false);
 
   const { user, fetchUser } = useUser();
-;
 
   const handleChatbutton = async () => {
+    if (loading) return;
+
     try {
-      // ----------------------------------
-      // 1. Auth token
-      // ----------------------------------
       const token = localStorage.getItem("authToken");
 
       if (!token) {
@@ -73,22 +71,12 @@ function UserRow({ rowUser, index, setShowPremium }) {
         return;
       }
 
-      // ----------------------------------
-      // 2. User check
-      // ----------------------------------
       if (!user?._id) {
         toast.error("User information not available");
         return;
       }
 
-      // ----------------------------------
-      // 3. This list is female chat
-      // ----------------------------------
       const chatMode = "female";
-
-      // ----------------------------------
-      // 4. Check coins
-      // ----------------------------------
       const currentCoins = user?.coin ?? 0;
 
       if (currentCoins < REQUIRED_COINS) {
@@ -96,9 +84,8 @@ function UserRow({ rowUser, index, setShowPremium }) {
         return;
       }
 
-      // ----------------------------------
-      // 5. Deduct coins
-      // ----------------------------------
+      setLoading(true);
+
       try {
         const response = await axios.post(
           `${import.meta.env.VITE_API_URL}/api/user/debit`,
@@ -109,35 +96,22 @@ function UserRow({ rowUser, index, setShowPremium }) {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
-        console.log(
-          "Coin deducted successfully:",
-          response.data
-        );
-
-        // Update user coin balance
+        console.log("Coin deducted successfully:", response.data);
         await fetchUser();
-
       } catch (error) {
         console.error(
           "Coin deduction failed:",
-          error.response?.data || error.message
+          error.response?.data || error.message,
         );
-
         toast.error(
-          error.response?.data?.message ||
-            "Unable to deduct coins"
+          error.response?.data?.message || "Unable to deduct coins",
         );
-
-        // Don't start chat if deduction failed
         return;
       }
 
-      // ----------------------------------
-      // 6. Create payload
-      // ----------------------------------
       const payload = {
         userId: user._id,
         gender: user.gender,
@@ -148,90 +122,109 @@ function UserRow({ rowUser, index, setShowPremium }) {
 
       console.log("Starting chat:", payload);
 
-      // ----------------------------------
-      // 7. Start chat
-      // ----------------------------------
       if (!socket) {
         toast.error("Connection not available");
         return;
       }
 
       socket.emit("startChat", payload);
-
-      // ----------------------------------
-      // 8. Save chat preferences
-      // ----------------------------------
-      // Agar setChatPreferences parent se aa raha hai,
-      // toh isse props mein pass karna hoga.
-
     } catch (error) {
-      console.error(
-        "Chat button error:",
-        error.response?.data || error.message
-      );
-
+      console.error("Chat button error:", error.response?.data || error.message);
       toast.error(
         error.response?.data?.message ||
-          "Something went wrong while starting chat"
+          "Something went wrong while starting chat",
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="group flex items-center justify-between gap-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-xl px-3 py-2.5 transition-colors duration-200">
-
-      {/* Avatar + name + status */}
+    <div
+      className="
+        group relative flex items-center justify-between gap-2.5
+        bg-white/[0.025] hover:bg-white/[0.045]
+        border border-white/[0.06] hover:border-white/[0.1]
+        rounded-2xl px-3.5 py-3
+        shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_20px_-6px_rgba(0,0,0,0.5)]
+        transition-all duration-300 ease-out
+        hover:-translate-y-0.5
+      "
+    >
       <div className="flex items-center gap-2.5 min-w-0">
-        <div
-          className={`w-9 h-9 shrink-0 rounded-full bg-gradient-to-br ${gradient} bg-[#20202a] flex items-center justify-center text-white/90 font-semibold text-xs ring-1 ring-white/10`}
-        >
-          {rowUser.name.charAt(0)}
+        <div className="relative shrink-0">
+          <div
+            className={`w-9 h-9 rounded-full bg-gradient-to-br ${gradient} bg-[#20202a] flex items-center justify-center text-white/90 font-semibold text-xs ring-1 ${
+              isLive ? "ring-red-400/30" : "ring-white/10"
+            }`}
+          >
+            {rowUser.name.charAt(0)}
+          </div>
+          {isLive && (
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-[#20202a] animate-pulse" />
+          )}
         </div>
 
         <div className="min-w-0">
-          <p className="text-gray-200 font-medium text-[13px] truncate">
+          <p className="text-gray-200 font-medium text-[13px] leading-tight truncate">
             {rowUser.name}
           </p>
-
-          <StatusBadge status={rowUser.status} />
+          <div className="mt-0.5">
+            <StatusBadge status={rowUser.status} />
+          </div>
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
-
         <button
           type="button"
-          className="flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 text-gray-400 text-[10.5px] font-medium px-2 py-1.5 rounded-lg transition-colors"
+          className="flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.06] text-gray-400 text-[10.5px] font-medium px-2 py-1.5 rounded-lg transition-colors duration-200"
         >
-          <Coins
-            size={11}
-            className="text-yellow-500/70"
-          />
+          <Coins size={11} className="text-yellow-500/70" />
           10
         </button>
 
         <button
           onClick={handleChatbutton}
+          disabled={loading}
           type="button"
-          className="flex items-center gap-1 bg-purple-600/25 hover:bg-purple-600/60 border border-purple-500/20 hover:border-purple-400/40 text-purple-200 hover:text-white text-[10.5px] font-medium px-2.5 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-md hover:shadow-purple-500/20 active:scale-95"
+          className="
+            flex items-center justify-center gap-1 min-w-[58px]
+            bg-purple-600/25 hover:bg-purple-600/70
+            border border-purple-500/20 hover:border-purple-400/40
+            text-purple-200 hover:text-white
+            text-[10.5px] font-semibold
+            px-2.5 py-1.5 rounded-lg
+            transition-all duration-200
+            hover:scale-105 active:scale-95
+            hover:shadow-md hover:shadow-purple-500/25
+            disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100
+          "
         >
-          <MessageCircle size={11} />
-          Chat
+          {loading ? (
+            <Loader2 size={11} className="animate-spin" />
+          ) : (
+            <>
+              <MessageCircle size={11} />
+              Chat
+            </>
+          )}
         </button>
-
       </div>
     </div>
   );
 }
 
-export default function OnlineUsersBackdrop({
-  setShowPremium,
-}) {
+export default function OnlineUsersBackdrop({ setShowPremium, isCardOpen = true }) {
   return (
     <div className="absolute inset-0 z-0 overflow-y-auto px-4 sm:px-7 pt-4 pb-2 hide-scrollbar">
-
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 gap-y-2 opacity-80">
+      <div
+        className={`
+          w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5
+          transition-opacity duration-500 ease-in-out
+          ${isCardOpen ? "opacity-80" : "opacity-100"}
+        `}
+      >
         {users.map((rowUser, index) => (
           <UserRow
             key={rowUser.name}
@@ -242,14 +235,10 @@ export default function OnlineUsersBackdrop({
         ))}
       </div>
 
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#2E2F38] via-[#2E2F38]/80 to-transparent" />
-
       <style>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
-
         .hide-scrollbar {
           scrollbar-width: none;
         }

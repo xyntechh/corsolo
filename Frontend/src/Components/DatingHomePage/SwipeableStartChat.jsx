@@ -1,23 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-/**
- * Behavior:
- * - Card + its top handle move TOGETHER as one unit while dragging.
- * - Drag down past threshold -> the whole thing (handle included) slides
- *   fully out of view (down).
- * - Once closed, a separate small "Start Chat" pill sits pinned at the
- *   very bottom (bottom: 0). Dragging THAT pill up brings the entire card
- *   (handle + content) back up together.
- */
-export default function SwipeableStartChat({ children }) {
+export default function SwipeableStartChat({ children, onOpenChange }) {
   const [isOpen, setIsOpen] = useState(true);
   const cardRef = useRef(null);
   const [maxOffset, setMaxOffset] = useState(0);
 
-  // Card (handle + content) ki total height measure karo —
-  // isi se pata chalega ki neeche jaakar kitna translate karna hai
-  // taaki pura card viewport ke bahar chala jaye.
   useEffect(() => {
     const measure = () => {
       if (cardRef.current) {
@@ -29,31 +17,46 @@ export default function SwipeableStartChat({ children }) {
     return () => window.removeEventListener("resize", measure);
   }, [children]);
 
-  // ---- Drag-to-toggle ----
+  // Naya: parent ko batao jab bhi open/close state badle
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
+
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const baseYRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   const startDrag = (clientY) => {
     startYRef.current = clientY;
-    // agar khula hai toh 0 se shuru, band hai toh maxOffset se shuru
     baseYRef.current = isOpen ? 0 : maxOffset;
+    hasDraggedRef.current = false;
     setIsDragging(true);
   };
 
   const moveDrag = (clientY) => {
     const delta = clientY - startYRef.current;
+
+    if (Math.abs(delta) > 4) {
+      hasDraggedRef.current = true;
+    }
+
     let newY = baseYRef.current + delta;
-    // 0 (khula) se maxOffset (band) ke beech hi rakho
     newY = Math.max(0, Math.min(maxOffset, newY));
     setDragY(newY);
   };
 
   const endDrag = () => {
     setIsDragging(false);
-    const threshold = maxOffset * 0.25; // 25% se zyada khincha toh state switch karo
 
+    if (!hasDraggedRef.current) {
+      setIsOpen(true);
+      setDragY(0);
+      return;
+    }
+
+    const threshold = maxOffset * 0.25;
     if (dragY > threshold) {
       setIsOpen(false);
       setDragY(maxOffset);
@@ -63,7 +66,6 @@ export default function SwipeableStartChat({ children }) {
     }
   };
 
-  // Pointer events = mouse (desktop) + touch (mobile) dono ek hi jagah se handle
   const handlePointerDown = (e) => {
     e.currentTarget.setPointerCapture?.(e.pointerId);
     startDrag(e.clientY);
@@ -74,13 +76,23 @@ export default function SwipeableStartChat({ children }) {
   };
   const handlePointerUp = () => endDrag();
 
-  // Live drag ke time dragY follow karo, warna state ke hisaab se snap position
+  const closeCard = () => {
+    setIsOpen(false);
+    setDragY(maxOffset);
+  };
+
   const translateY = isDragging ? dragY : isOpen ? 0 : maxOffset;
 
   return (
     <div className="relative w-full flex justify-center px-4 sm:px-7">
-      {/* Collapsed "Start Chat" pill — bottom: 0 pe pinned.
-          Sirf tab dikhta/draggable hota hai jab card band ho. */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={closeCard}
+          aria-hidden="true"
+        />
+      )}
+
       <button
         type="button"
         onPointerDown={handlePointerDown}
@@ -88,7 +100,7 @@ export default function SwipeableStartChat({ children }) {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         aria-label="Swipe up to open"
-        className={`absolute bottom-0 left-4 right-4 sm:left-7 sm:right-7 mx-auto max-w-xl rounded-t-[24px] bg-[#15151F] border border-white/10 px-5 py-3 flex items-center justify-center gap-2 touch-none select-none transition-opacity duration-200 ${
+        className={`absolute bottom-0 left-4 right-4 sm:left-7 sm:right-7 mx-auto max-w-xl rounded-t-[24px] bg-[#15151F] border border-white/10 px-5 py-3 flex items-center justify-center gap-2 touch-none select-none transition-opacity duration-200 z-20 ${
           !isOpen && !isDragging
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -98,16 +110,14 @@ export default function SwipeableStartChat({ children }) {
         <span className="text-sm font-semibold text-white">Swipe up</span>
       </button>
 
-      {/* Full card — handle + content move together as ONE unit */}
       <div
         ref={cardRef}
         style={{
           transform: `translateY(${translateY}px)`,
           transition: isDragging ? "none" : "transform 0.3s ease-out",
         }}
-        className="w-full max-w-xl"
+        className="w-full max-w-xl relative z-20"
       >
-        {/* Handle — ab ye bhi card ke saath hi slide hota hai, pinned nahi hai */}
         <div
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -122,7 +132,7 @@ export default function SwipeableStartChat({ children }) {
             }`}
           />
           <span className="text-sm  font-semibold text-white">
-            Swioe down 
+            Swipe down 
           </span>
         </div>
 
