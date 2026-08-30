@@ -8,7 +8,6 @@ import MatchHistory from "../Components/DatingHomePage/MatchHistoy.jsx";
 import Notifications from "../Components/DatingHomePage/Notifications.jsx";
 import FriendRequests from "../Components/DatingHomePage/FriendRequests.jsx";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SettingsModal from "../Components/DatingHomePage/SettingsModal.jsx";
 import ChatScreen from "../Components/DatingHomePage/ChatScreen.jsx";
 import { socket } from "../socket.js";
@@ -17,6 +16,8 @@ import { useUser } from "../Context/UserContext.jsx";
 import PremiumModal from "../Components/DatingHomePage/PremiumModal.jsx";
 import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsModal.jsx";
 import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetails.jsx";
+import SwipeableStartChat from "../Components/DatingHomePage/SwipeableStartChat.jsx";
+import OnlineUsersBackdrop from "../Components/DatingHomePage/OnlineUsersBackdrop.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -86,45 +87,50 @@ function DatingHomePageClone() {
             />
           </div>
 
-          {/* Main content */}
-          <div
-            className={`
+         {/* Main content */}
+<div
+  className={`
     flex-1 min-h-0 relative overflow-hidden
     transition-all duration-300 ease-in-out
     ${showMatchHistoryCard ? "lg:mr-72" : "mr-0"}
   `}
-          >
-            {/* Start Chat Screen */}
-            <div
-              className={`
-      absolute inset-0
+>
+  {/* Background list — poori width, sabse peeche (z-0) */}
+  <OnlineUsersBackdrop />
+
+  {/* Start Chat Screen — is par SwipeableStartChat rahega, z-10 se upar */}
+  <div
+    className={`
+      absolute inset-0 z-10
       flex items-end justify-center
       transition-all duration-500 ease-in-out
       ${isMatched ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"}
     `}
-            >
-              <StartChatCard
-                manageInterstModal={manageInterstModal}
-                setmanageInterstModal={setmanageInterstModal}
-              />
-            </div>
+  >
+    <SwipeableStartChat>
+      <StartChatCard
+        manageInterstModal={manageInterstModal}
+        setmanageInterstModal={setmanageInterstModal}
+      />
+    </SwipeableStartChat>
+  </div>
 
-            {/* Chat Screen */}
-            <div
-              className={`
-      absolute inset-0 
+  {/* Chat Screen */}
+  <div
+    className={`
+      absolute inset-0 z-10
       flex items-end justify-center
       transition-all duration-500 ease-in-out
       ${isMatched ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
     `}
-            >
-              <ChatScreen
-                chatId={selectedChat?.chatId}
-                friendId={selectedChat?.friendId}
-                partnerName={selectedChat?.name}
-              />
-            </div>
-          </div>
+  >
+    <ChatScreen
+      chatId={selectedChat?.chatId}
+      friendId={selectedChat?.friendId}
+      partnerName={selectedChat?.name}
+    />
+  </div>
+</div>
 
           {/* Match History */}
           {/*   Match History Overlay */}

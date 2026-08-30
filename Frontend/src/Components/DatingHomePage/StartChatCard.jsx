@@ -167,8 +167,13 @@ function StartChatCard({
   }, []);
 
   return (
-    <div className="w-full flex justify-center items-center px-4 sm:px-7">
-      <div className="w-full max-w-xl rounded-t-[24px] bg-[#15151F] border border-white/10 p-5 sm:p-6">
+    <>
+      {/* NOTE: top rounding removed (rounded-b-[24px] instead of rounded-t-[24px])
+          and top border dropped (border-t-0) — the SwipeableStartChat handle now
+          sits directly on top of this box and supplies the top border, so the
+          two pieces look like one seamless card. Width/centering (max-w-xl,
+          px-4 sm:px-7) is now owned by the wrapper, not this component. */}
+      <div className="w-full max-w-xl rounded-b-[24px] bg-[#15151F] border border-white/10 border-t-0 p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -307,7 +312,7 @@ function StartChatCard({
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
