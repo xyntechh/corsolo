@@ -17,7 +17,6 @@ export default function SwipeableStartChat({ children, onOpenChange }) {
     return () => window.removeEventListener("resize", measure);
   }, [children]);
 
-  // Naya: parent ko batao jab bhi open/close state badle
   useEffect(() => {
     onOpenChange?.(isOpen);
   }, [isOpen, onOpenChange]);
@@ -76,12 +75,39 @@ export default function SwipeableStartChat({ children, onOpenChange }) {
   };
   const handlePointerUp = () => endDrag();
 
+  // Naya: window-level fallback listeners — agar mobile pe pointerup/cancel
+  // element tak na pahunche (fast swipe, browser gesture conflict), tab bhi
+  // drag properly khatam ho aur isDragging kabhi stuck na rahe.
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onWindowMove = (e) => moveDrag(e.clientY);
+    const onWindowUp = () => endDrag();
+
+    window.addEventListener("pointermove", onWindowMove);
+    window.addEventListener("pointerup", onWindowUp);
+    window.addEventListener("pointercancel", onWindowUp);
+
+    return () => {
+      window.removeEventListener("pointermove", onWindowMove);
+      window.removeEventListener("pointerup", onWindowUp);
+      window.removeEventListener("pointercancel", onWindowUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging]);
+
   const closeCard = () => {
     setIsOpen(false);
     setDragY(maxOffset);
   };
 
   const translateY = isDragging ? dragY : isOpen ? 0 : maxOffset;
+
+  // Naya: pill ki opacity ab card ki live position se aati hai —
+  // isDragging flag se nahi. Isse touch karte hi button vanish nahi hota,
+  // smooth fade hota hai jaisa card upar/niche jaata hai.
+  const pillOpacity = maxOffset > 0 ? translateY / maxOffset : isOpen ? 0 : 1;
+  const pillInteractive = pillOpacity > 0.5;
 
   return (
     <div className="relative w-full flex justify-center px-4 sm:px-7">
@@ -93,6 +119,7 @@ export default function SwipeableStartChat({ children, onOpenChange }) {
         />
       )}
 
+      {/* Collapsed "Start Chat" pill */}
       <button
         type="button"
         onPointerDown={handlePointerDown}
@@ -100,10 +127,9 @@ export default function SwipeableStartChat({ children, onOpenChange }) {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         aria-label="Swipe up to open"
-        className={`absolute bottom-0 left-4 right-4 sm:left-7 sm:right-7 mx-auto max-w-xl rounded-t-[24px] bg-[#15151F] border border-white/10 px-5 py-3 flex items-center justify-center gap-2 touch-none select-none transition-opacity duration-200 z-20 ${
-          !isOpen && !isDragging
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+        style={{ opacity: pillOpacity }}
+        className={`absolute bottom-0 left-4 right-4 sm:left-7 sm:right-7 mx-auto max-w-xl rounded-t-[24px] bg-[#15151F] border border-white/10 px-5 py-3 flex items-center justify-center gap-2 touch-none select-none transition-opacity duration-150 z-20 ${
+          pillInteractive ? "pointer-events-auto" : "pointer-events-none"
         }`}
       >
         <ChevronDown size={18} className="text-purple-400  rotate-180" />
