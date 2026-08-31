@@ -17,6 +17,7 @@ import { useUser } from "../Context/UserContext.jsx";
 import PremiumModal from "../Components/DatingHomePage/PremiumModal.jsx";
 import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsModal.jsx";
 import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetailsComponent.jsx";
+import EbookAdPopup from "../Banner/Ebookadpopup.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -28,6 +29,7 @@ function DatingHomePageClone() {
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
+  const [showEbookPopup, setshowEbookPopup] = useState(false);
 
   const { user, isMatched, setIsMatched } = useUser();
 
@@ -48,6 +50,11 @@ function DatingHomePageClone() {
   useEffect(() => {
     socket.emit("registerUser", user?._id);
   }, [user]);
+
+  //SHOW EBOOK POP ONLY WHEN APP IS RELOAD AND ONLY WHEN YOUR LOGIN FIRST TIME
+  useEffect(() => {
+    setshowEbookPopup(true);
+  }, []);
 
   return (
     <>
@@ -409,6 +416,9 @@ function DatingHomePageClone() {
           />
         </div>
       </>
+
+      {/*Ebook Popup*/}
+      {showEbookPopup && <EbookAdPopup setShowPopup={setshowEbookPopup} />}
     </>
   );
 }

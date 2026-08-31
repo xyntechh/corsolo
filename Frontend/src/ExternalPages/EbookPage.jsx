@@ -47,7 +47,7 @@ export default function EbookPage() {
 
             {/* Price Tag */}
             <div className="inline-block bg-gradient-to-r from-pink-500 to-pink-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-xs sm:text-sm md:text-base rounded-lg shadow-lg">
-              ₹299| <span className="line-through opacity-75">₹6,238</span>{" "}
+              ₹499| <span className="line-through opacity-75">₹6,238</span>{" "}
               Dating Guide
             </div>
 
