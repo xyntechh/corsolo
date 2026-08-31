@@ -33,6 +33,15 @@ function DatingHomePageClone() {
 
   const { user, isMatched, setIsMatched } = useUser();
 
+  //Scroll lock
+  useEffect(() => {
+    document.body.classList.add("no-page-scroll");
+
+    return () => {
+      document.body.classList.remove("no-page-scroll");
+    };
+  }, []);
+
   //socket Logic
   useEffect(() => {
     socket.on("matched", (data) => {
