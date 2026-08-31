@@ -79,7 +79,7 @@ export default function CheckoutPage() {
               {/* Price */}
               <div className="flex items-center gap-3">
                 <span className="text-2xl sm:text-3xl font-bold text-pink-500">
-                  ₹299
+                  ₹499
                 </span>
                 <span className="text-lg sm:text-xl line-through text-gray-500">
                   ₹6,238
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
               onClick={handlePurchase}
               className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-pink-500 hover:from-pink-600 hover:via-pink-700 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-xl text-base sm:text-lg md:text-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-pink-500/50 transform"
             >
-              🔒 Pay Now - ₹299
+              🔒 Pay Now - ₹499
             </button>
 
             {/* Security Note */}
