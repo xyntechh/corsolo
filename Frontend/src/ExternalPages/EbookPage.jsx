@@ -114,7 +114,7 @@ export default function EbookPage() {
                   </p>
                   <div className="flex items-center justify-center gap-2 sm:gap-3">
                     <span className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white">
-                     ₹299
+                     ₹499
                     </span>
                     <span className="text-lg sm:text-xl md:text-2xl line-through text-gray-500">
                       ₹6,238
