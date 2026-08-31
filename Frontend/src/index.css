@@ -4,7 +4,11 @@
 
 
 
-
+body.no-page-scroll {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 
 
 input,
