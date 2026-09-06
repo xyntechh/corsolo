@@ -14,8 +14,8 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
+import axios from "axios";
 
-// 🔧 Change this to your backend base URL (or wire it to an env var / axios instance)
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Helper: decide file type from its name/extension
@@ -53,7 +53,7 @@ const Media = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await res.json();
@@ -77,6 +77,35 @@ const Media = () => {
     }
   }, []);
 
+  const deleteSelectedMedia = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const res = await axios.delete(
+        `${BASE_URL}/api/mediaDashboard/deleteMedia`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          data: { filenames: selected },
+        },
+      );
+
+      if (res.data.success) {
+        // Refresh the media list after deletion
+        await fetchMedia(page);
+      } else {
+        setError(
+          res.data.message || "Something went wrong while deleting media",
+        );
+      }
+    } catch (error) {
+      setError(error.message || "Something went wrong while deleting media");
+      setMedia([]);
+    }
+  };
+
   useEffect(() => {
     fetchMedia(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,7 +120,7 @@ const Media = () => {
     setSelected((prev) =>
       prev.includes(fileName)
         ? prev.filter((f) => f !== fileName)
-        : [...prev, fileName]
+        : [...prev, fileName],
     );
   };
 
@@ -177,7 +206,7 @@ const Media = () => {
 
                 {selected.length > 0 && (
                   <button
-                    onClick={() => setSelected([])}
+                    onClick={deleteSelectedMedia}
                     className="text-xs sm:text-sm font-semibold text-red-500 hover:text-red-600 flex items-center gap-1"
                   >
                     <Trash2 className="w-4 h-4" />

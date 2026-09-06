@@ -50,3 +50,72 @@ exports.getAllMedia = async (req, res) => {
     });
   }
 };
+
+exports.deleteMedia = async (req, res) => {
+  try {
+    const { filenames } = req.body;
+
+    if (!Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one filename is required",
+      });
+    }
+
+    const results = [];
+
+    for (const filename of filenames) {
+      // Security: sirf filename allow karo
+      const safeFilename = path.basename(filename);
+
+      if (safeFilename !== filename) {
+        results.push({
+          filename,
+          success: false,
+          message: "Invalid filename",
+        });
+        continue;
+      }
+
+      const filePath = path.join(uploadPath, safeFilename);
+
+      try {
+        await fs.promises.unlink(filePath);
+
+        results.push({
+          filename: safeFilename,
+          success: true,
+        });
+      } catch (error) {
+        if (error.code === "ENOENT") {
+          results.push({
+            filename: safeFilename,
+            success: false,
+            message: "File not found",
+          });
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    const deleted = results.filter((item) => item.success).length;
+    const failed = results.filter((item) => !item.success).length;
+
+    return res.status(200).json({
+      success: true,
+      message: `${deleted} file(s) deleted successfully`,
+      deleted,
+      failed,
+      results,
+    });
+
+  } catch (error) {
+    console.error("deleteMedia:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete media",
+    });
+  }
+};
