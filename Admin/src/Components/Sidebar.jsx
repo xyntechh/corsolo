@@ -49,10 +49,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
 
     {
-      id: "valentine",
-      label: "Valentine",
+      id: "Media",
+      label: "Media",
       icon: Heart,
-      link: "/dashboard/valentine",
+      link: "/dashboard/media",
     },
 
     {

@@ -23,6 +23,7 @@ const partnerDashbord = require("./routes/AdminRoutes/partner.routes.js")
 const paymentDashboard = require("./routes/AdminRoutes/payment.routes.js")
 const EbookRoutes = require("./routes/AdminRoutes/eBook.routes.js")
 const valentineRoutes = require("./routes/AdminRoutes/valentine.routes.js")
+const mediaRoutes = require("./routes/AdminRoutes/media.routes.js")
 
 
 const cashFreeRoutes = require("./routes/cashFree.Routes.js")
@@ -53,7 +54,8 @@ app.use(cors({
     "http://localhost:5173",
     "https://corsolo.com",
     "https://www.corsolo.com",
-    "https://corsolo-fawn.vercel.app"
+    "https://corsolo-fawn.vercel.app",
+    "http://localhost:5174"
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
@@ -93,7 +95,7 @@ app.use("/api/partnerDashboard", partnerDashbord)
 app.use("/api/paymentDashboard", paymentDashboard)
 app.use("/api/eBookDashboard", EbookRoutes)
 app.use("/api/valentineDashboard", valentineRoutes)
-
+app.use("/api/mediaDashboard", mediaRoutes)
 
 server.listen(5000, () => {
   console.log("Server running on port 5000");
