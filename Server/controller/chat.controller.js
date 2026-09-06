@@ -1,8 +1,14 @@
 const Chat = require("../models/chat.model.js");
 const ChatsNew = require("../models/chatsNew.model.js")
 const Message = require("../models/message.model.js");
+const sharp = require("sharp");
 const User = require("../models/user.model.js");
 const { onlineUsers } = require("../socket/socketManager.js");
+const fs = require("fs");
+const path = require("path");
+
+const uploadPath = path.join(__dirname, "../../uploads");
+
 
 
 exports.fetchMessages = async (req, res) => {
@@ -342,13 +348,40 @@ exports.uploadImage = async (req, res) => {
       });
     }
 
+    const originalPath = req.file.path;
+    const originalExt = path.extname(req.file.originalname).toLowerCase();
+
+    let finalFilename = req.file.filename;
+
+    // HEIC / HEIF ko JPEG mein convert karo
+    if (originalExt === ".heic" || originalExt === ".heif") {
+      finalFilename =
+        `${Date.now()}-${Math.round(Math.random() * 1e9)}.jpg`;
+
+      const outputPath = path.join(uploadPath, finalFilename);
+
+      await sharp(originalPath)
+        .jpeg({
+          quality: 85,
+        })
+        .toFile(outputPath);
+
+      // Original HEIC delete
+      await fs.promises.unlink(originalPath);
+    }
+
     const imageUrl =
-      `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+      `${req.protocol}://${req.get("host")}/uploads/${finalFilename}`;
+
+    const messageType = req.file.mimetype.startsWith("image")
+      ? "image"
+      : "audio";
 
     return res.status(200).json({
       success: true,
       url: imageUrl,
-      messageType: req.file.mimetype.startsWith("audio") ? "audio" : "image",
+      filename: finalFilename,
+      messageType
     });
 
   } catch (error) {
@@ -356,7 +389,7 @@ exports.uploadImage = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Image upload failed",
     });
   }
 };

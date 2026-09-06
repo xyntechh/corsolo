@@ -13,11 +13,11 @@ import SignupUsersList from "./Components/SignupUsersList";
 import SignupUserDetails from "./Components/SignupUserDetails";
 import Payment from "./Pages/Payment ";
 import Ebook from "./Pages/Ebook";
-import Valentine from "./Pages/Valentine";
 import { useEffect } from "react";
 import { socket } from "./socket";
 import { jwtDecode } from "jwt-decode";
 import ExecutiveChatRoom from "./Pages/ExecutiveChatRoom";
+import Media from "./Pages/Media";
 
 function App() {
   useEffect(() => {
@@ -57,7 +57,7 @@ function App() {
         <Route path="signUpUserDetails" element={<SignupUserDetails />} />
         <Route path="payment" element={<Payment />} />
         <Route path="eBook" element={<Ebook />} />
-        <Route path="valentine" element={<Valentine />} />
+        <Route path="media" element={<Media />} />
         <Route path="executive" element={<ExecutiveChatRoom />} />
       </Route>
     </Routes>
