@@ -16,6 +16,16 @@ const waitingUsers = new Map();
 const activeChats = new Map();
 const lastPartnerMap = new Map();
 
+
+// Helper function to emit queue updates to the admin dashboard
+function emitQueueUpdate(io) {
+  io.to("admin").emit("queueUpdate", {
+    random: queues.random,
+    male: queues.male,
+    female: queues.female,
+  });
+}
+
 module.exports = (server) => {
   const io = new Server(server, {
     cors: {
@@ -33,6 +43,9 @@ module.exports = (server) => {
       const index = queues[key].findIndex((u) => u.socketId === socketId);
       if (index !== -1) queues[key].splice(index, 1);
     }
+
+    //update queue sending to admin dashbaord
+    emitQueueUpdate(io);
   }
 
   // ── HELPER 2: user ko queue me daalo aur 30s ka timeout set karo
@@ -46,6 +59,9 @@ module.exports = (server) => {
     if (queues[data.gender]) {
       queues[data.gender].push(entry);
     }
+
+    //update queue sending to admin dashbaord
+    emitQueueUpdate(io);
 
     const timeout = setTimeout(() => {
       removeFromAllQueues(socket.id);
@@ -93,6 +109,7 @@ module.exports = (server) => {
     const partner = searchQueue[candidateIndex];
 
     removeFromAllQueues(partner.socketId);
+    removeFromAllQueues(socket.id);
 
     const partnerUser = waitingUsers.get(partner.socketId);
     if (partnerUser) {
@@ -175,6 +192,13 @@ module.exports = (server) => {
   io.on("connection", (socket) => {
     console.log("✅ User Connected");
     console.log("Socket ID:", socket.id);
+
+
+    socket.on("joinAdminRoom", () => {
+      socket.join("admin");
+      emitQueueUpdate(io);
+
+    })
 
     socket.on("registerUser", (userId) => {
       if (!userId) return;

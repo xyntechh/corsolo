@@ -7,6 +7,10 @@ import {
   Activity,
   TrendingUp,
   Calendar,
+  Radio,
+  Venus,
+  Mars,
+  Clock,
 } from "lucide-react";
 import {
   LineChart,
@@ -19,6 +23,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useDashboard } from "../Context/DashboardContext";
+import { socket } from "../socket.js";
 
 const User = () => {
   const {
@@ -35,7 +40,6 @@ const User = () => {
     userLast7DaysFunction();
     getUserPerDayFunction();
   }, []);
-
 
   const statsCards = [
     {
@@ -80,6 +84,48 @@ const User = () => {
     },
   ];
 
+  const [queues, setQueues] = useState({
+    random: [],
+    male: [],
+    female: [],
+  });
+
+  useEffect(() => {
+    const handleConnect = () => {
+      console.log("🟢 ADMIN SOCKET CONNECTED:", socket.id);
+
+      socket.emit("joinAdminRoom");
+      console.log("📡 joinAdminRoom emitted");
+    };
+
+    const handleQueueUpdate = (data) => {
+      console.log("🔥 LIVE QUEUE:", data);
+      setQueues(data);
+    };
+
+    const handleConnectError = (err) => {
+      console.error("❌ SOCKET CONNECT ERROR:", err.message);
+      console.error("❌ SOCKET URL:", import.meta.env.VITE_API_URL);
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("queueUpdate", handleQueueUpdate);
+    socket.on("connect_error", handleConnectError);
+
+    if (!socket.connected) {
+      console.log("🔌 Connecting admin socket...");
+      socket.connect();
+    } else {
+      handleConnect();
+    }
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("queueUpdate", handleQueueUpdate);
+      socket.off("connect_error", handleConnectError);
+    };
+  }, []);
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -96,6 +142,27 @@ const User = () => {
     }
     return null;
   };
+
+  // ---------- Live Queue helpers ----------
+  const randomQueue = queues?.random || [];
+  const maleQueue = queues?.male || [];
+  const femaleQueue = queues?.female || [];
+
+  // unique total waiting users (avoid double counting since a user can appear
+  // in both "random" and their gender-specific queue at the same time)
+  const uniqueWaitingIds = new Set([
+    ...randomQueue.map((u) => u.socketId),
+    ...maleQueue.map((u) => u.socketId),
+    ...femaleQueue.map((u) => u.socketId),
+  ]);
+  const totalWaiting = uniqueWaitingIds.size;
+
+  const queueCards = [
+  { title: "Random", list: randomQueue, icon: Radio, iconColor: "text-violet-600" },
+  { title: "Male", list: maleQueue, icon: Mars, iconColor: "text-blue-600" },
+  { title: "Female", list: femaleQueue, icon: Venus, iconColor: "text-pink-600" },
+];
+  // -----------------------------------------
 
   return (
     <main className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50/30">
@@ -147,6 +214,76 @@ const User = () => {
           })}
         </div>
 
+        
+       {/* ---------------- Live Queue Status (NEW) ---------------- */}
+<div className="bg-white rounded-2xl border border-gray-200 mb-6 sm:mb-8 overflow-hidden">
+  {/* Header strip */}
+  <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-200">
+    <div className="flex items-center gap-2.5">
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+      <h3 className="text-base sm:text-lg font-bold text-gray-900">
+        Live matching queue
+      </h3>
+      <span className="text-xs text-gray-400 font-medium hidden sm:inline">
+        · updates in real time
+      </span>
+    </div>
+
+    <div className="flex items-baseline gap-1.5">
+      <span className="text-xs text-gray-500 font-medium">waiting</span>
+      <span className="text-xl sm:text-2xl font-bold text-gray-900 tabular-nums font-mono">
+        {totalWaiting}
+      </span>
+    </div>
+  </div>
+
+  {/* Columns */}
+  <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+    {queueCards.map((q, index) => {
+      const Icon = q.icon;
+      return (
+        <div key={index} className="p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Icon className={`w-4 h-4 ${q.iconColor}`} strokeWidth={2} />
+              <span className="text-sm font-semibold text-gray-700">
+                {q.title}
+              </span>
+            </div>
+            <span className="text-2xl font-bold text-gray-900 tabular-nums font-mono">
+              {q.list.length}
+            </span>
+          </div>
+
+          {q.list.length === 0 ? (
+            <p className="text-xs text-gray-400 py-3">Nobody waiting right now.</p>
+          ) : (
+            <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+              {q.list.map((u, i) => (
+                <li
+                  key={u.socketId || i}
+                  className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-50"
+                >
+                  <span className="font-medium text-gray-800 truncate">
+                    {u.partnerName || "Unknown"}
+                  </span>
+                  <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+                    {u.lookingFor || u.gender}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+{/* -------------- End Live Queue Status -------------- */}
+      
         {/* Analytics Graph */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -252,7 +389,10 @@ const User = () => {
               <p className="text-sm text-blue-600 font-semibold mb-1">
                 Avg. Signup Users
               </p>
-              <p className="text-2xl sm:text-3xl font-bold text-blue-900"> {avarageUserPerDay ? avarageUserPerDay?.averageSignupUsers : 0}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-900">
+                {" "}
+                {avarageUserPerDay ? avarageUserPerDay?.averageSignupUsers : 0}
+              </p>
               <p className="text-xs text-blue-600 mt-1">per day</p>
             </div>
             <div className="text-center p-4 bg-emerald-50 rounded-xl">
@@ -260,7 +400,7 @@ const User = () => {
                 Avg. Guest Users
               </p>
               <p className="text-2xl sm:text-3xl font-bold text-emerald-900">
-               {avarageUserPerDay ? avarageUserPerDay?.averageGuestUsers : 0}
+                {avarageUserPerDay ? avarageUserPerDay?.averageGuestUsers : 0}
               </p>
               <p className="text-xs text-emerald-600 mt-1">per day</p>
             </div>
