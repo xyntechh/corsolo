@@ -344,44 +344,26 @@ exports.uploadImage = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Image is required",
+        message: "File is required",
       });
     }
 
-    const originalPath = req.file.path;
-    const originalExt = path.extname(req.file.originalname).toLowerCase();
+    const finalFilename = req.file.filename;
 
-    let finalFilename = req.file.filename;
-
-    // HEIC / HEIF ko JPEG mein convert karo
-    if (originalExt === ".heic" || originalExt === ".heif") {
-      finalFilename =
-        `${Date.now()}-${Math.round(Math.random() * 1e9)}.jpg`;
-
-      const outputPath = path.join(uploadPath, finalFilename);
-
-      await sharp(originalPath)
-        .jpeg({
-          quality: 85,
-        })
-        .toFile(outputPath);
-
-      // Original HEIC delete
-      await fs.promises.unlink(originalPath);
-    }
-
-    const imageUrl =
+    const fileUrl =
       `${req.protocol}://${req.get("host")}/uploads/${finalFilename}`;
 
     const messageType = req.file.mimetype.startsWith("image")
       ? "image"
-      : "audio";
+      : req.file.mimetype.startsWith("audio")
+      ? "audio"
+      : "file";
 
     return res.status(200).json({
       success: true,
-      url: imageUrl,
+      url: fileUrl,
       filename: finalFilename,
-      messageType
+      messageType,
     });
 
   } catch (error) {
@@ -389,7 +371,7 @@ exports.uploadImage = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Image upload failed",
+      message: "File upload failed",
     });
   }
 };
