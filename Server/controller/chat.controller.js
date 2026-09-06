@@ -1,7 +1,6 @@
 const Chat = require("../models/chat.model.js");
 const ChatsNew = require("../models/chatsNew.model.js")
 const Message = require("../models/message.model.js");
-const sharp = require("sharp");
 const User = require("../models/user.model.js");
 const { onlineUsers } = require("../socket/socketManager.js");
 const fs = require("fs");
