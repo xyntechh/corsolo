@@ -24,6 +24,7 @@ const paymentDashboard = require("./routes/AdminRoutes/payment.routes.js")
 const EbookRoutes = require("./routes/AdminRoutes/eBook.routes.js")
 const valentineRoutes = require("./routes/AdminRoutes/valentine.routes.js")
 const mediaRoutes = require("./routes/AdminRoutes/media.routes.js")
+const serverStatsRoutes = require("./routes/AdminRoutes/serverStats.route.js")
 
 
 const cashFreeRoutes = require("./routes/cashFree.Routes.js")
@@ -96,6 +97,9 @@ app.use("/api/paymentDashboard", paymentDashboard)
 app.use("/api/eBookDashboard", EbookRoutes)
 app.use("/api/valentineDashboard", valentineRoutes)
 app.use("/api/mediaDashboard", mediaRoutes)
+app.use("/api/serverStats", serverStatsRoutes)
+
+
 
 server.listen(5000, () => {
   console.log("Server running on port 5000");

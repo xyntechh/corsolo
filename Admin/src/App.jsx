@@ -18,6 +18,7 @@ import { socket } from "./socket";
 import { jwtDecode } from "jwt-decode";
 import ExecutiveChatRoom from "./Pages/ExecutiveChatRoom";
 import Media from "./Pages/Media";
+import ServerStats from "./Pages/ServerStats";
 
 function App() {
   useEffect(() => {
@@ -58,7 +59,7 @@ function App() {
         <Route path="payment" element={<Payment />} />
         <Route path="eBook" element={<Ebook />} />
         <Route path="media" element={<Media />} />
-        <Route path="executive" element={<ExecutiveChatRoom />} />
+        <Route path="serverStats" element={<ServerStats />} />
       </Route>
     </Routes>
   );
