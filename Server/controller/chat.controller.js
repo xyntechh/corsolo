@@ -222,7 +222,6 @@ exports.getChatMessages = async (req, res) => {
 }
 
 
-
 exports.getMyChats = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -325,6 +324,35 @@ exports.getMyChats = async (req, res) => {
     });
   } catch (error) {
     console.error("getMyChats:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Image is required",
+      });
+    }
+
+    const imageUrl =
+      `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
+    return res.status(200).json({
+      success: true,
+      url: imageUrl,
+      messageType: req.file.mimetype.startsWith("audio") ? "audio" : "image",
+    });
+
+  } catch (error) {
+    console.error("uploadImage:", error);
 
     return res.status(500).json({
       success: false,

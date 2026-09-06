@@ -449,10 +449,10 @@ export default function ChatScreen({
 
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("image", file);
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/user/upload-chat-media`,
+        `${import.meta.env.VITE_API_URL}/api/chat/upload-image`,
         formData,
         {
           headers: {
@@ -467,7 +467,7 @@ export default function ChatScreen({
           roomId,
           message: "",
           messageType: res.data.messageType, // "image" ya "audio"
-          mediaUrl: res.data.url,
+          mediaUrl: res?.data.url,
           senderName: user?.name,
           senderId: user?._id,
           chatId: chatId,

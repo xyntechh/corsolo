@@ -11,6 +11,7 @@ const bodyParser = require("body-parser");
 const clinet = require("./routes/partner.Routes.js")
 const refferal = require("./routes/refferal.Routes.js")
 const chat = require("./routes/chats.Routes.js")
+const path = require("path");
 
 
 //ADMIN DASHBOARD IMPORTING 
@@ -30,6 +31,11 @@ const app = express();
 
 
 
+//static folder for uploads
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
 
 app.post("/api/payment",
   bodyParser.raw({ type: "application/json" })
@@ -49,7 +55,7 @@ app.use(cors({
     "https://www.corsolo.com",
     "https://corsolo-fawn.vercel.app"
   ],
-  methods: ["GET","POST","PUT","PATCH","DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
 }));
 
