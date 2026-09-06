@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // 🔧 Change this to your backend base URL (or wire it to an env var / axios instance)
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 // Helper: decide file type from its name/extension
 const getFileType = (name = "") => {
