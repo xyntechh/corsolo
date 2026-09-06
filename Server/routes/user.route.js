@@ -4,7 +4,6 @@ const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, for
 const authMiddleware = require("../middleware/auth.js")
 const { findMatch } = require("../controller/match.controller.js");
 const { fetchMessages, uploadChatMedia } = require("../controller/chat.controller.js");
-const upload = require("../middleware/upload.js")
 
 router.post("/register", registerUser);
 router.put("/update", authMiddleware, updateUser);
@@ -39,14 +38,6 @@ router.get("/get-friends", authMiddleware,  getFriends )
 
 
 
-
-
-router.post(
-  "/upload-chat-media",
-  authMiddleware,
-  upload.single("file"),
-  uploadChatMedia
-);
 
 
 module.exports = router;
