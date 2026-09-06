@@ -56,10 +56,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
 
     {
-      id: "executive",
-      label: "Executive",
+      id: "serverStats",
+      label: "Server Stats",
       icon: Users,
-      link: "/dashboard/executive",
+      link: "/dashboard/serverStats",
     },
   ];
 
