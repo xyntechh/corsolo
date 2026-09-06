@@ -105,7 +105,7 @@ const User = () => {
 
     const handleConnectError = (err) => {
       console.error("❌ SOCKET CONNECT ERROR:", err.message);
-      console.error("❌ SOCKET URL:", import.meta.env.VITE_API_URL);
+      console.error("❌ SOCKET URL:", import.meta.env.VITE_SOCKET_URL);
     };
 
     socket.on("connect", handleConnect);
