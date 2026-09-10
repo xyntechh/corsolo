@@ -18,6 +18,7 @@ import PremiumModal from "../Components/DatingHomePage/PremiumModal.jsx";
 import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsModal.jsx";
 import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetailsComponent.jsx";
 import EbookAdPopup from "../Banner/Ebookadpopup.jsx";
+import SocialComponent from "../Components/DatingHomePage/SocialComponent.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -110,6 +111,10 @@ function DatingHomePageClone() {
     ${showMatchHistoryCard ? "lg:mr-72" : "mr-0"}
   `}
           >
+            <div className="bg-red-500"  >
+              <SocialComponent />
+            </div>
+
             {/* Start Chat Screen */}
             <div
               className={`
