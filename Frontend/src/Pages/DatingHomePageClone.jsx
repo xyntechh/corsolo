@@ -31,7 +31,8 @@ function DatingHomePageClone() {
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
   const [showEbookPopup, setshowEbookPopup] = useState(false);
 
-  const { user, isMatched, setIsMatched, showPremium, setShowPremium } = useUser();
+  const { user, isMatched, setIsMatched, showPremium, setShowPremium } =
+    useUser();
 
   //Scroll lock
   useEffect(() => {
@@ -110,10 +111,6 @@ function DatingHomePageClone() {
     ${showMatchHistoryCard ? "lg:mr-72" : "mr-0"}
   `}
           >
-            <div className="bg-red-500"  >
-              <SocialComponent />
-            </div>
-
             {/* Start Chat Screen */}
             <div
               className={`
