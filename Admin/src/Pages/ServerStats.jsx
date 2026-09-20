@@ -27,6 +27,8 @@ import {
   Legend,
 } from "recharts";
 
+import MongoStats from "../Components/MongoStats.jsx";
+
 // 🔧 Change this to your backend base URL (or wire it to an env var / axios instance)
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -47,8 +49,10 @@ const formatUptime = (seconds = 0) => {
 
 // Color scale based on usage percent
 const usageColor = (pct = 0) => {
-  if (pct >= 85) return { from: "from-red-600", to: "to-rose-500", hex: "#ef4444" };
-  if (pct >= 60) return { from: "from-orange-600", to: "to-amber-500", hex: "#f97316" };
+  if (pct >= 85)
+    return { from: "from-red-600", to: "to-rose-500", hex: "#ef4444" };
+  if (pct >= 60)
+    return { from: "from-orange-600", to: "to-amber-500", hex: "#f97316" };
   return { from: "from-emerald-600", to: "to-green-500", hex: "#10b981" };
 };
 
@@ -163,7 +167,10 @@ const ServerStats = () => {
 
   useEffect(() => {
     if (autoRefresh) {
-      intervalRef.current = setInterval(() => fetchStats(false), REFRESH_INTERVAL);
+      intervalRef.current = setInterval(
+        () => fetchStats(false),
+        REFRESH_INTERVAL,
+      );
     }
     return () => clearInterval(intervalRef.current);
   }, [autoRefresh, fetchStats]);
@@ -180,6 +187,8 @@ const ServerStats = () => {
 
   return (
     <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-gray-50 to-blue-50/30">
+    
+
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
@@ -331,7 +340,9 @@ const ServerStats = () => {
                 <InfoRow label="Usage" value={`${stats.cpu.usagePercent}%`} />
                 <InfoRow
                   label="Load Avg (1/5/15m)"
-                  value={stats.cpu.loadAverage?.map((n) => n.toFixed(2)).join(" / ")}
+                  value={stats.cpu.loadAverage
+                    ?.map((n) => n.toFixed(2))
+                    .join(" / ")}
                 />
               </div>
 
@@ -404,6 +415,10 @@ const ServerStats = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+
+              <div>
+        <MongoStats />
+      </div>
 
             {/* Server time footer */}
             <div className="text-center text-xs text-gray-400 font-medium pb-4">

@@ -1,8 +1,19 @@
 const os = require("os");
 const { exec } = require("child_process");
 const util = require("util");
-
+const axios = require("axios");
+const crypto = require("crypto");
 const execAsync = util.promisify(exec);
+const DigestFetch = require("digest-fetch").default;
+const mongoose = require("mongoose");
+const ChatsNew = require("../../models/chatsNew.model.js");
+const Messages = require("../../models/message.model.js");
+
+
+const atlasClient = new DigestFetch(
+  process.env.ATLAS_PUBLIC_KEY,
+  process.env.ATLAS_PRIVATE_KEY
+);
 
 // Bytes → GB
 const toGB = (bytes) => {
@@ -52,6 +63,7 @@ const getCpuUsage = () => {
   });
 };
 
+//GET SERVER STATS
 exports.getServerStats = async (req, res) => {
   try {
     const cpus = os.cpus();
@@ -152,6 +164,100 @@ exports.getServerStats = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to fetch server stats",
+    });
+  }
+};
+
+
+//GET MONGO DB SERVER STATS 
+exports.mongoStats = async (req, res) => {
+  try {
+    // MongoDB Atlas M0 storage limit
+    const totalBytes = 0.5 * 1024 * 1024 * 1024;
+
+    // Run Atlas-specific command
+    const result = await mongoose.connection.db.command({
+      atlasSize: 1,
+    });
+
+    console.log("MongoDB Atlas Size:", result);
+
+    const usedBytes = Number(result.atlasSize || 0);
+
+    const freeBytes = Math.max(totalBytes - usedBytes, 0);
+
+    const usedGB = usedBytes / (1024 ** 3);
+    const freeGB = freeBytes / (1024 ** 3);
+    const totalGB = totalBytes / (1024 ** 3);
+
+    const usagePercent = (usedBytes / totalBytes) * 100;
+
+    return res.status(200).json({
+      success: true,
+
+      storage: {
+        usedGB: Number(usedGB.toFixed(3)),
+        freeGB: Number(freeGB.toFixed(3)),
+        totalGB: Number(totalGB.toFixed(2)),
+        usagePercent: Number(usagePercent.toFixed(2)),
+      },
+
+      raw: {
+        atlasSizeBytes: usedBytes,
+      },
+    });
+
+  } catch (error) {
+    console.error("mongoStats:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to fetch MongoDB stats",
+      error: error.message,
+    });
+  }
+};
+
+
+//CLEAN MONGO DB STORAGE
+exports.cleanMongoStorage = async (req, res) => {
+  try {
+    // Extra safety check
+    if (req.headers["x-confirm-delete"] !== "DELETE") {
+      return res.status(400).json({
+        success: false,
+        message: "Confirmation required",
+      });
+    }
+
+    const twelveHoursAgo = new Date(
+      Date.now() - 12 * 60 * 60 * 1000
+    );
+
+    const deleteChatsNew = await ChatsNew.deleteMany({
+      createdAt: { $lt: twelveHoursAgo },
+    });
+
+    const deleteMessages = await Messages.deleteMany({
+      createdAt: { $lt: twelveHoursAgo },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "MongoDB storage cleaned successfully",
+      deletedCount: {
+        chatsNew: deleteChatsNew.deletedCount,
+        messages: deleteMessages.deletedCount,
+      },
+    });
+
+  } catch (error) {
+    console.error("cleanMongoStorage:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to clean MongoDB storage",
+      error: error.message,
     });
   }
 };
