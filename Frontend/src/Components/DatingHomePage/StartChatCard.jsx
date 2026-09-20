@@ -67,11 +67,11 @@ const genderOptions = [
 ];
 
 const REQUIRED_COINS = 10;
+const REQUIRED_COINS_VIDEO_CALL = 20;
 
 function StartChatCard({
   interests = defaultInterests,
   setmanageInterstModal,
-  setShowPremium,
 }) {
   //states
   const [gender, setGender] = useState("");
@@ -80,7 +80,8 @@ function StartChatCard({
   const { fetchUser } = useUser();
 
   //CONTEXT
-  const { user, setChatPreferences, isMatched, setIsMatched } = useUser();
+  const { user, setChatPreferences, isMatched, setIsMatched, setShowPremium } =
+    useUser();
 
   //first socket event
   const startChat = async () => {
@@ -166,13 +167,15 @@ function StartChatCard({
     };
   }, []);
 
+  const videoCallPremium = () => {
+    if (user?.coin < REQUIRED_COINS_VIDEO_CALL) {
+      setShowInsufficientCoins(true);
+      return;
+    }
+  };
+
   return (
     <>
-      {/* NOTE: top rounding removed (rounded-b-[24px] instead of rounded-t-[24px])
-          and top border dropped (border-t-0) — the SwipeableStartChat handle now
-          sits directly on top of this box and supplies the top border, so the
-          two pieces look like one seamless card. Width/centering (max-w-xl,
-          px-4 sm:px-7) is now owned by the wrapper, not this component. */}
       <div className="w-full max-w-xl rounded-b-[24px] bg-[#15151F] border border-white/10 border-t-0 p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -254,6 +257,7 @@ function StartChatCard({
             type="button"
             aria-label="Start video chat"
             className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br from-orange-400 to-orange-500"
+            onClick={videoCallPremium}
           >
             <Video size={22} className="text-white" fill="white" />
           </button>
