@@ -14,6 +14,7 @@ export const UserProvider = ({ children }) => {
   const [chatPreferences, setChatPreferences] = useState(null);
   const [isMatched, setIsMatched] = useState(false);
   const [selected, setSelected] = useState("infinity"); //THIS STATE FOR THE SELCETED COIN PLAN
+  const [showPremium, setShowPremium] = useState(false); //THIS IS FOR THE PREMIUM POPUP SHOW OR NOT
 
   const fetchUser = async () => {
     try {
@@ -181,6 +182,8 @@ export const UserProvider = ({ children }) => {
     selected,
     setSelected,
     packages,
+    showPremium,
+    setShowPremium,
   };
 
   return <UserContext.Provider value={Value}>{children}</UserContext.Provider>;

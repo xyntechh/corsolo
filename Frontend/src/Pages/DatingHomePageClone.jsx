@@ -26,13 +26,12 @@ function DatingHomePageClone() {
   const [showNotificationsCard, setShowNotificationsCard] = useState(false);
   const [showFriendRequestsCard, setShowFriendRequestsCard] = useState(false);
   const [showSettingsModal, setshowSettingsModal] = useState(false);
-  const [showPremium, setShowPremium] = useState(false);
   const [manageInterstModal, setmanageInterstModal] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
   const [showEbookPopup, setshowEbookPopup] = useState(false);
 
-  const { user, isMatched, setIsMatched } = useUser();
+  const { user, isMatched, setIsMatched, showPremium, setShowPremium } = useUser();
 
   //Scroll lock
   useEffect(() => {

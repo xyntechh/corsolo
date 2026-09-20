@@ -1,37 +1,31 @@
 import { useState, useEffect } from "react";
 import { X, Gem, ShoppingBag } from "lucide-react";
+import { useUser } from "../../Context/UserContext.jsx";
 
-/**
- * Reusable "not enough coins" modal.
- *
- * Usage:
- *   const [showInsufficientCoins, setShowInsufficientCoins] = useState(false);
- *   const [requiredCoins, setRequiredCoins] = useState(10);
- *
- *   {showInsufficientCoins && (
- *     <InsufficientCoinsModal
- *       requiredCoins={requiredCoins}
- *       currentCoins={user?.coins}
- *       onClose={() => setShowInsufficientCoins(false)}
- *       onBuyCoins={() => {
- *         setShowInsufficientCoins(false);
- *         setShowPremium(true); // open your coins/premium modal
- *       }}
- *     />
- *   )}
- */
 export default function InsufficientCoinsModal({
   requiredCoins = 10,
   currentCoins = 0,
-  onClose,
   onBuyCoins,
-  gender
+  gender,
+  onClose,
 }) {
   const [mounted, setMounted] = useState(false);
+
+  //CONTEXT
+
+  const { setShowPremium } = useUser();
+
+  // Handle modal mount and unmount animations
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
+
+  //HANDLE ONBUY COINS CLICK
+  const hanndleBuyCoins = () => {
+    setMounted(false);
+    setShowPremium(true);
+  };
 
   return (
     <div
@@ -74,7 +68,7 @@ export default function InsufficientCoinsModal({
 
         <div className="flex flex-col gap-2 px-5 pt-4 pb-5">
           <button
-            onClick={onBuyCoins}
+            onClick={hanndleBuyCoins}
             className="w-full flex items-center justify-center gap-2 rounded-md bg-purple-500 hover:bg-purple-600 active:bg-purple-700 py-2.5 text-sm font-semibold text-white transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
