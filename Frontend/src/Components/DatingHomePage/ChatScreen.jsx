@@ -104,6 +104,7 @@ function groupMessages(list) {
     } else {
       groups.push({
         sender: msg.sender,
+        profilePicture: msg.senderProfilePicture || '😋',
         name: msg.name,
         time: msg.time,
         items: [msg],
@@ -113,14 +114,17 @@ function groupMessages(list) {
   return groups;
 }
 
-function Avatar({ isMe }) {
+function Avatar({ isMe , senderProfilePicture }) {
+  const { user } = useUser();
+
+  console.log("Sender Profile Picture:", senderProfilePicture);
   return (
     <div
       className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${
         isMe ? "bg-[#f4a3a3]" : "bg-[#c084fc]"
       }`}
     >
-      😏
+      {isMe ? <img src={user?.profilePicture} alt="Profile" /> : <img src={senderProfilePicture} alt="Partner" />}
     </div>
   );
 }
@@ -128,6 +132,8 @@ function Avatar({ isMe }) {
 function MessageGroup({ group }) {
   const [hoveredId, setHoveredId] = useState(null);
   const isMe = group.sender === "me";
+  const senderProfilePicture = group.profilePicture || '😋' ;
+  console.log(group)
 
   return (
     <div
@@ -141,7 +147,7 @@ function MessageGroup({ group }) {
         }`}
       />
 
-      <Avatar isMe={isMe} />
+      <Avatar isMe={isMe} senderProfilePicture={senderProfilePicture} />
 
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-baseline gap-2 mb-0.5">
@@ -373,6 +379,7 @@ export default function ChatScreen({
           text: msg.message,
           messageType: msg.messageType || "text",
           mediaUrl: msg.mediaUrl || null,
+          senderProfilePicture: msg.senderProfilePicture || null,
         },
       ]);
     };
@@ -395,6 +402,7 @@ export default function ChatScreen({
       chatId: chatId,
       receiverId: partnerId,
       receiverName: partnerName,
+      senderProfilePicture: user?.profilePicture,
     });
 
     setInput("");

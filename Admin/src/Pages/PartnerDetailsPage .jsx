@@ -34,7 +34,6 @@ const PartnerDetailsPage = () => {
   const { state } = useLocation();
   const partnerId = state?.partnerId;
 
-  console.log(partnerId)
 
   const getPartnerById = async () => {
     setLoading(true);
@@ -59,7 +58,6 @@ const PartnerDetailsPage = () => {
       );
 
       if (res.data.success) {
-        console.log(res.data.data);
         setPartner(res.data.data);
       }
     } catch (error) {

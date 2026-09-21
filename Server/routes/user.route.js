@@ -4,10 +4,11 @@ const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, for
 const authMiddleware = require("../middleware/auth.js")
 const { findMatch } = require("../controller/match.controller.js");
 const { fetchMessages, uploadChatMedia } = require("../controller/chat.controller.js");
+const { profileUpload } = require("../middleware/upload.js");
 
 router.post("/register", registerUser);
 router.put("/update", authMiddleware, updateUser);
-router.get("/getUserInfo", authMiddleware, getUserInfo)
+router.get("/getUserInfo", authMiddleware, getUserInfo);
 
 
 
@@ -21,7 +22,7 @@ router.post('/debit', authMiddleware, debitUserCoin);
 
 router.post("/login", login)
 
-router.post("/signUp", signUp)
+router.post("/signUp", profileUpload.single("profilePicture"), signUp)
 
 router.post("/forgetPassword", forgetPassword)
 
@@ -31,9 +32,9 @@ router.post("/resetPassword/:token", resetPassword)
 router.get("/fetchPendingFriendReq/:userId", pendingFriendRequest)
 
 router.patch("/friend-request/:requestId/accept", authMiddleware, acceptFriendRequest)
-router.patch("/friend-request/:requestId/reject", authMiddleware ,rejectFriendRequest)
+router.patch("/friend-request/:requestId/reject", authMiddleware, rejectFriendRequest)
 
-router.get("/get-friends", authMiddleware,  getFriends )
+router.get("/get-friends", authMiddleware, getFriends)
 
 
 

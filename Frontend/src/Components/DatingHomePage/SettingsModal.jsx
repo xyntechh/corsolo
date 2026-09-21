@@ -9,6 +9,7 @@ import {
   Ban,
   Pencil,
 } from "lucide-react";
+import { useUser } from "../../Context/UserContext";
 
 const NAV_ITEMS = [
   { key: "profile", label: "Profile", icon: User },
@@ -25,8 +26,6 @@ export default function SettingsModal({
 }) {
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Jab modal khule tab hi background scroll band karo,
-  // aur modal band hote hi wapas normal kar do.
   React.useEffect(() => {
     if (showSettingsModal) {
       const originalOverflow = document.body.style.overflow;
@@ -71,8 +70,6 @@ export default function SettingsModal({
     // (band hone par parent ka translate-y-full le lega, animation smooth rahega)
     setDragY(0);
   };
-
-
 
   return (
     <div
@@ -199,7 +196,8 @@ function SectionLabel({ children }) {
 
 function ProfilePanel() {
   const [nameChangesLeft] = useState(3);
-
+  const { user } = useUser();
+  console.log(user?.isGuest);
   return (
     <div className="space-y-6">
       {/* Avatar */}
@@ -208,20 +206,34 @@ function ProfilePanel() {
         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
           <div className="flex items-start gap-4 flex-1 min-w-0">
             <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-neutral-700 shrink-0">
-              <div className="w-full h-full bg-gradient-to-br from-rose-400 to-rose-500 flex items-center justify-center text-2xl">
-                😏
-              </div>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-white">{user?.name?.charAt(0)}</span>
+              )}
             </div>
             <p className="text-sm text-neutral-400 min-w-0">
-              Avatars are reviewed before displaying. Do not upload
-              inappropriate avatars. Limit: 3 changes daily. Max 8MB.
+              {user?.isGuest
+                ? "Guest accounts cannot change avatars. Please sign up and log in to update your avatar."
+                : "Avatars are reviewed before display. Limit: 3 changes per day. Max size: 8MB."}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0 pl-20 sm:pl-0">
-            <button className="px-3 py-1.5 rounded-md bg-neutral-800 text-sm font-medium hover:bg-neutral-700 transition-colors">
+            <button
+              disabled={user?.isGuest}
+              className="px-3 py-1.5 rounded-md bg-neutral-800 text-sm font-medium hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Change
             </button>
-            <button className="px-3 py-1.5 rounded-md text-sm font-medium text-neutral-200 hover:text-white transition-colors">
+
+            <button
+              disabled={user?.isGuest}
+              className="px-3 py-1.5 rounded-md text-sm font-medium text-neutral-200 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Remove
             </button>
           </div>
@@ -257,7 +269,7 @@ function ProfilePanel() {
       <div>
         <SectionLabel>Username</SectionLabel>
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-base">charred title</span>
+          <span className="text-base">{user?.name || "Not set"}</span>
           <button className="px-3 py-1.5 rounded-md bg-neutral-800 text-sm font-medium hover:bg-neutral-700 transition-colors">
             Edit
           </button>
@@ -288,9 +300,7 @@ function AccountPanel() {
             Edit
           </button>
         </div>
-        <p className="text-sm text-neutral-400 mt-1">
-          Your email is verified.
-        </p>
+        <p className="text-sm text-neutral-400 mt-1">Your email is verified.</p>
       </div>
 
       {/* Password */}

@@ -45,6 +45,8 @@ exports.registerUser = async (req, res) => {
       dob,
       gender,
       lookingFor,
+      isGuest: true,
+      profilePicture: `https://api.dicebear.com/9.x/adventurer/svg?seed=${name}`,
     });
 
     // Generate JWT
@@ -85,7 +87,6 @@ exports.signUp = async (req, res) => {
       email,
       phone,
       password,
-      profilePicture,
       bio,
       country,
       state,
@@ -95,6 +96,13 @@ exports.signUp = async (req, res) => {
       yourInterests,
       refferdBy,
     } = req.body;
+
+    const profilePicture = req.file;
+
+
+
+    const fileUrl =
+      `${req.protocol}://${req.get("host")}/uploads/profile/${req.file.filename}`;
 
     const ip = req.clientIP;
 
@@ -151,7 +159,7 @@ exports.signUp = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      profilePicture,
+      profilePicture: fileUrl,
       bio,
       country,
       state,
