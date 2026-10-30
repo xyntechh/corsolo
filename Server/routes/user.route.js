@@ -1,14 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { registerUser, updateUser, getUserInfo, debitUserCoin, login, signUp, forgetPassword, resetPassword, getFriends, acceptFriendRequest, rejectFriendRequest, pendingFriendRequest } = require("../controller/user.controller.js");
+const { registerUser, updateUser, UpdateFreeCall, getUserInfo, debitUserCoin, login, signUp, forgetPassword, resetPassword, getFriends, acceptFriendRequest, rejectFriendRequest, pendingFriendRequest } = require("../controller/user.controller.js");
 const authMiddleware = require("../middleware/auth.js")
 const { findMatch } = require("../controller/match.controller.js");
 const { fetchMessages, uploadChatMedia } = require("../controller/chat.controller.js");
 const { profileUpload } = require("../middleware/upload.js");
 
+
 router.post("/register", registerUser);
 router.put("/update", authMiddleware, updateUser);
 router.get("/getUserInfo", authMiddleware, getUserInfo);
+router.patch("/update-free-call", authMiddleware, UpdateFreeCall);
 
 
 

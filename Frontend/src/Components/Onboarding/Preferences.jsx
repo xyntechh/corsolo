@@ -12,6 +12,7 @@ import {
 import ClipLoader from "react-spinners/ClipLoader";
 import { useSignup } from "../../Context/SignupContext";
 import axios from "axios";
+import { useUser } from "../../Context/UserContext";
 
 const sideFeatures = [
   {
@@ -83,6 +84,7 @@ function Preferences() {
 
   const navigate = useNavigate();
   const { signupData, clearSignup } = useSignup();
+  const { user, fetchUser } = useUser();
 
   useEffect(() => {
     // Prevent body scroll and zoom
@@ -171,6 +173,7 @@ function Preferences() {
         clearSignup();
 
         navigate("/homeClone");
+        fetchUser()
       }
     } catch (error) {
       console.log(error);

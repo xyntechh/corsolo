@@ -848,5 +848,57 @@ exports.getFriends = async (req, res) => {
 };
 
 
+exports.UpdateFreeCall = async (req, res) => { 
+
+
+  try {
+
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const freeCallCount = user.freeVedioCall || 0;
+
+    if (freeCallCount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No free video calls left",
+      });
+    }
+
+    if (freeCallCount === 1) {
+      user.freeVedioCall = 0;
+    } else {
+      user.freeVedioCall -= 1;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Free video call count updated",
+      freeVedioCall: user.freeVedioCall,
+    });
+    
+  } catch (error) {
+     return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+    
+  }
+
+} 
+
+
+
+
 
 

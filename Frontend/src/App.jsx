@@ -44,6 +44,9 @@ import CreateConfession from "./Confession/CofessionComponents/CreateConfessionM
 import ConfessionNotification from "./Confession/CofessionComponents/NotificationsPage.jsx";
 import MyProfilePage from "./Confession/CofessionComponents/MyProfilePage.jsx";
 
+//vedeo call routes
+import VideoCallPage from "./Components/Feature/vedioCall/Videocallpage.jsx";
+
 ReactGA.initialize("G-Y2DP2Y0VW2"); // Yaha apni measurement ID daalna
 
 //Vinay branch
@@ -79,7 +82,6 @@ function App() {
         path="/chathome"
         element={
           <GuestRoute>
-           
             <ChatHome />{" "}
           </GuestRoute>
         }
@@ -90,6 +92,14 @@ function App() {
           <GuestRoute>
             <SignUp />
           </GuestRoute>
+        }
+      />
+      <Route
+        path="/video-call"
+        element={
+          <ProtectedRoute>
+            <VideoCallPage />
+          </ProtectedRoute>
         }
       />
       <Route

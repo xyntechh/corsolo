@@ -155,6 +155,11 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
 
+    freeVedioCall: {
+      type: Number,
+      default: 1,
+    },
+
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,

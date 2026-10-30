@@ -31,6 +31,7 @@ function DatingHomePageClone() {
   const [GuestPaymentDetails, setGuestPaymentDetails] = useState(null);
   const [showEbookPopup, setshowEbookPopup] = useState(false);
 
+
   const { user, isMatched, setIsMatched, showPremium, setShowPremium } =
     useUser();
 
@@ -65,6 +66,7 @@ function DatingHomePageClone() {
   useEffect(() => {
     setshowEbookPopup(true);
   }, []);
+
 
   return (
     <>
@@ -123,6 +125,7 @@ function DatingHomePageClone() {
               <StartChatCard
                 manageInterstModal={manageInterstModal}
                 setmanageInterstModal={setmanageInterstModal}
+        
               />
             </div>
 
@@ -429,6 +432,11 @@ function DatingHomePageClone() {
 
       {/*Ebook Popup*/}
       {showEbookPopup && <EbookAdPopup setShowPopup={setshowEbookPopup} />}
+
+    
+
+     
+      
     </>
   );
 }
