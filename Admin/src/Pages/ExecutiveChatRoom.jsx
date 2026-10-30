@@ -166,7 +166,6 @@ function ChatRoom({ socketRef, room, executiveId, userId, onLeave }) {
       if (cancelled) return;
 
       if (socket && socket.connected) {
-        console.log("🔗 Executive joining room:", room);
         socket.emit("joinSupportRoom", { room });
         if (!cancelled) setRoomJoined(true);
       } else {
@@ -184,7 +183,6 @@ function ChatRoom({ socketRef, room, executiveId, userId, onLeave }) {
     if (!socket) return;
 
     const handleMessage = (data) => {
-      console.log("📨 Received msg:", data);
       setMessages((prev) => [...prev, { ...data, fromMe: false }]);
     };
 

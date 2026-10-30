@@ -33,8 +33,6 @@ const SignupUserDetails = () => {
 
   const userId = location.state?.userId;
 
-  console.log(userId)
-
   // safety check
   if (!userId) {
     navigate("/dashboard/signup-users");

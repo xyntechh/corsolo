@@ -55,7 +55,6 @@ const SignupUsersList = () => {
         setUsers(response?.data?.data);
         setTotalPages(response?.data?.pagination?.totalPages);
 
-        console.log(response?.data?.pagination?.totalPages);
         setCurrentPage(response?.data?.pagination?.currentPage);
       }
     } catch (error) {
@@ -89,8 +88,6 @@ const SignupUsersList = () => {
   };
 
   const handleViewDetails = (userId) => {
-
-    console.log(userId)
     navigate("/dashboard/signUpUserDetails", {
       state: { userId },
     });

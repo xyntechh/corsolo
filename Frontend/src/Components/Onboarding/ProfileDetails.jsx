@@ -61,23 +61,7 @@ function ProfileDetails() {
     };
   }, []);
 
-  const uploadToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-    );
 
-    const res = await axios.post(
-      `https://api.cloudinary.com/v1_1/${
-        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-      }/image/upload`,
-      formData,
-    );
-
-    return res.data.secure_url;
-  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -106,19 +90,16 @@ function ProfileDetails() {
     setLoading(true);
 
     try {
-      let profilePictureUrl = "";
+     
 
-      // 👇 agar user ne photo select ki hai, tabhi upload karo
-      if (photo) {
-        profilePictureUrl = await uploadToCloudinary(photo);
-      }
+    
 
       updateSignup({
         bio,
         country,
         state,
         city,
-        profilePicture: profilePictureUrl, // 👈 ab yahan Cloudinary ka URL jayega
+        profilePicture: photo, // 
       });
 
       toast.success("Profile saved!");

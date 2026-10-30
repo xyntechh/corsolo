@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
 import InsufficientCoinsModal from "./InsufficientCoinsModal.jsx";
+import EbookPromoCard from "../../Banner/EbookPromoCard.jsx";
+import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 
@@ -72,16 +74,24 @@ const REQUIRED_COINS_VIDEO_CALL = 20;
 function StartChatCard({
   interests = defaultInterests,
   setmanageInterstModal,
+  setVedioCallModal,
+  vedioCallModal,
 }) {
   //states
   const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [showInsufficientCoins, setShowInsufficientCoins] = useState(false);
-  const { fetchUser } = useUser();
 
   //CONTEXT
-  const { user, setChatPreferences, isMatched, setIsMatched, setShowPremium } =
-    useUser();
+  const {
+    user,
+    setChatPreferences,
+    isMatched,
+    fetchUser,
+    setIsMatched,
+    setShowPremium,
+  } = useUser();
+  const navigate = useNavigate();
 
   //first socket event
   const startChat = async () => {
@@ -167,12 +177,16 @@ function StartChatCard({
     };
   }, []);
 
-  const videoCallPremium = () => {
-    if (user?.coin < REQUIRED_COINS_VIDEO_CALL) {
-      setShowInsufficientCoins(true);
-      return;
+  const navigateToVideoCall = () => {
+    if (user?.isGuest == true) {
+      navigate("/signUp/basicdetails");
+
+    } else {
+      navigate("/video-call");
     }
   };
+
+  
 
   return (
     <>
@@ -213,6 +227,10 @@ function StartChatCard({
             </p>
           )}
         </div>
+
+        {/* EBOOK PROMO CARD */}
+        <EbookPromoCard />
+
         {/* Gender Filter */}
         <div className="mt-1">
           <h3 className="mb-4 text-lg font-bold text-white">Gender Filter</h3>
@@ -257,7 +275,7 @@ function StartChatCard({
             type="button"
             aria-label="Start video chat"
             className="flex h-12 w-12 items-center justify-center rounded-md bg-gradient-to-br from-orange-400 to-orange-500"
-            onClick={videoCallPremium}
+            onClick={navigateToVideoCall}
           >
             <Video size={22} className="text-white" fill="white" />
           </button>

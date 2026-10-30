@@ -315,6 +315,7 @@ module.exports = (server) => {
           sender: messageObj.sender.toString(),
           receiver: messageObj.receiver.toString(),
           senderName: data.senderName,
+          senderProfilePicture: data.senderProfilePicture,
         });
       } catch (err) {
         console.log(err);

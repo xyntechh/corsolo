@@ -12,6 +12,7 @@ import {
 import ClipLoader from "react-spinners/ClipLoader";
 import { useSignup } from "../../Context/SignupContext";
 import axios from "axios";
+import { useUser } from "../../Context/UserContext";
 
 const sideFeatures = [
   {
@@ -83,6 +84,7 @@ function Preferences() {
 
   const navigate = useNavigate();
   const { signupData, clearSignup } = useSignup();
+  const { user, fetchUser } = useUser();
 
   useEffect(() => {
     // Prevent body scroll and zoom
@@ -136,18 +138,32 @@ function Preferences() {
     setLoading(true);
 
     try {
-      const payload = {
+      const formData = new FormData();
+
+      Object.entries({
         ...signupData,
         lookingFor,
         interestsIn: interestedIn,
         yourInterests: interests,
-      };
+      }).forEach(([key, value]) => {
+        if (key === "profilePicture") return;
 
-      console.log(payload);
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            formData.append(key, item);
+          });
+        } else {
+          formData.append(key, value ?? "");
+        }
+      });
+
+      if (signupData.profilePicture) {
+        formData.append("profilePicture", signupData.profilePicture);
+      }
 
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/user/signup`,
-        payload,
+        formData,
       );
 
       if (res.data.success) {
@@ -157,6 +173,7 @@ function Preferences() {
         clearSignup();
 
         navigate("/homeClone");
+        fetchUser()
       }
     } catch (error) {
       console.log(error);

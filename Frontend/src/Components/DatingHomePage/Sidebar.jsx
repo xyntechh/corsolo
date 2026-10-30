@@ -15,7 +15,7 @@ export default function Sidebar({
   showSettingsModal,
   setshowSettingsModal,
   setShowPremium,
-  onSelectChat
+  onSelectChat,
 }) {
   const [showSettings, setShowSettings] = useState(false);
 
@@ -45,7 +45,15 @@ export default function Sidebar({
       {/* Footer */}
       <div className="flex items-center gap-2 px-3.5 py-3 border-t border-[#2c2c38] shrink-0">
         <div className="relative w-9 h-9 rounded-full bg-[#f4a3a3] flex items-center justify-center text-lg shrink-0">
-          🐱
+          {user?.profilePicture ? (
+            <img
+              src={user.profilePicture}
+              alt="Profile"
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-white">{user?.name?.charAt(0)}</span>
+          )}
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#1e1e26] rounded-full" />
         </div>
         <div className="flex-1 min-w-0">
