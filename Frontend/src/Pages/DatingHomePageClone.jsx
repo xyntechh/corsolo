@@ -19,6 +19,7 @@ import ManageInterestsModal from "../Components/DatingHomePage/ManageInterestsMo
 import GuestPaymentDetailsComponent from "../Components/DatingHomePage/GuestPaymentDetailsComponent.jsx";
 import EbookAdPopup from "../Banner/Ebookadpopup.jsx";
 import SocialComponent from "../Components/DatingHomePage/SocialComponent.jsx";
+import ImportantNoticeModal from "../Banner/Importantnoticemodal.jsx";
 
 function DatingHomePageClone() {
   const [showCard, setShowCard] = useState(false);
@@ -430,10 +431,8 @@ function DatingHomePageClone() {
         </div>
       </>
 
-      {/*Ebook Popup*/}
-      {showEbookPopup && <EbookAdPopup setShowPopup={setshowEbookPopup} />}
-
-    
+      {/* Important Notice Modal */}
+      <ImportantNoticeModal />
 
      
       
