@@ -104,7 +104,7 @@ function groupMessages(list) {
     } else {
       groups.push({
         sender: msg.sender,
-        profilePicture: msg.senderProfilePicture || '😋',
+        profilePicture: msg.senderProfilePicture || "😋",
         name: msg.name,
         time: msg.time,
         items: [msg],
@@ -114,7 +114,7 @@ function groupMessages(list) {
   return groups;
 }
 
-function Avatar({ isMe , senderProfilePicture }) {
+function Avatar({ isMe, senderProfilePicture }) {
   const { user } = useUser();
 
   console.log("Sender Profile Picture:", senderProfilePicture);
@@ -124,7 +124,11 @@ function Avatar({ isMe , senderProfilePicture }) {
         isMe ? "bg-[#f4a3a3]" : "bg-[#c084fc]"
       }`}
     >
-      {isMe ? <img src={user?.profilePicture} alt="Profile" /> : <img src={senderProfilePicture} alt="Partner" />}
+      {isMe ? (
+        <img src={user?.profilePicture} alt="Profile" />
+      ) : (
+        <img src={senderProfilePicture} alt="Partner" />
+      )}
     </div>
   );
 }
@@ -132,8 +136,8 @@ function Avatar({ isMe , senderProfilePicture }) {
 function MessageGroup({ group }) {
   const [hoveredId, setHoveredId] = useState(null);
   const isMe = group.sender === "me";
-  const senderProfilePicture = group.profilePicture || '😋' ;
-  console.log(group)
+  const senderProfilePicture = group.profilePicture || "😋";
+  console.log(group);
 
   return (
     <div
@@ -552,6 +556,13 @@ export default function ChatScreen({
     setIsRecording(false);
   };
 
+
+  //Temporarily closed image feature
+  const temporarilyClosedImageFeature = () => {
+    toast.error("Opps! Image feature is temporarily closed.");
+  };
+
+
   return (
     <>
       {isSearching ? (
@@ -798,14 +809,16 @@ export default function ChatScreen({
                       <label className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                         <ImageIcon size={17} />
                         <input
-                          type="file"
-                          accept="image/*"
+                         // type="file"
+                         // accept="image/*"
                           className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) uploadAndSend(file, "image");
-                            e.target.value = "";
-                          }}
+                          // onChange={(e) => {
+                          //  const file = e.target.files[0];
+                          // if (file) uploadAndSend(file, "image");
+                          //   e.target.value = "";
+                          //  }}
+
+                          onClick={temporarilyClosedImageFeature}
                         />
                       </label>
 
