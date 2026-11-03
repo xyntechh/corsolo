@@ -5,6 +5,7 @@ const fs = require("fs");
 const uploadPath = path.join(__dirname, "../uploads");
 const profileUploadPath = path.join(uploadPath, "profile");
 
+
 // Folder automatically create ho jayega
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
@@ -129,7 +130,11 @@ const profileUpload = multer({
 });
 
 
+
 module.exports = {
   localUpload,
   profileUpload,
+
 };
+
+

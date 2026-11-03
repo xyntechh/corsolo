@@ -33,7 +33,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { fetchUser ,getFriend } = useUser();
+  const { fetchUser, getFriend } = useUser();
 
   useEffect(() => {
     // Prevent body scroll and zoom
@@ -75,34 +75,31 @@ function Login() {
       const data = await response.json();
 
       if (!data.success) {
-        setLoading(false);
         toast.error(data.message || "Login failed");
         return;
       }
 
-      // Save token in localStorage
+      // Save authentication data
       localStorage.setItem("authToken", data.token);
-
-      // Save user info (optional but helpful)
       localStorage.setItem("userData", JSON.stringify(data.user));
+
 
       toast.success("Login successful!");
 
       fetchUser();
-      getFriend()
+      getFriend();
 
-      // Redirect to dashboard or home
       navigate("/homeClone");
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleSignup = () => {
-    navigate("/");
+    navigate("/signUp/basicdetails");
   };
 
   return (

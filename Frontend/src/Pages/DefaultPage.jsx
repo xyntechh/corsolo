@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import heroImage from "../assets/hero.png";
 import { MessageCircle, Video, MapPin, ShieldCheck, Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 import Footer from "../Components/Footer";
@@ -35,6 +36,12 @@ export default function Navbar() {
         "Enjoy encrypted chats, verified profiles, and powerful moderation for a secure experience.",
     },
   ];
+
+  const navigate = useNavigate();
+
+  const handleVideoChatClick = () => {
+    navigate("/signUp/basicdetails");
+  };
 
   const linkClass = ({ isActive }) =>
     isActive
@@ -192,7 +199,9 @@ export default function Navbar() {
                 </button>
               </Link>
 
-              <button className="border border-purple-500 hover:bg-purple-900/20 px-8 py-3 rounded-full font-semibold transition">
+              <button
+              onClick={handleVideoChatClick}
+               className="border border-purple-500 hover:bg-purple-900/20 px-8 py-3 rounded-full font-semibold transition">
                 Video Chat
               </button>
             </div>
