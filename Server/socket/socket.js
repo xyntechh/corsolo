@@ -291,6 +291,7 @@ module.exports = (server) => {
     });
 
     socket.on("sendMessage", async (data) => {
+      console.log("sendMessage event received:", data);
       try {
         const newMessage = await Message.create({
           chat: data.chatId,
@@ -300,6 +301,7 @@ module.exports = (server) => {
           delivered: true,
           messageType: data.messageType || "text",
           mediaUrl: data.mediaUrl || null,
+          snapId: data.snapId || null,
         });
 
         await chatsNew.findByIdAndUpdate(data.chatId, {
@@ -316,6 +318,7 @@ module.exports = (server) => {
           receiver: messageObj.receiver.toString(),
           senderName: data.senderName,
           senderProfilePicture: data.senderProfilePicture,
+          snapId: data.snapId
         });
       } catch (err) {
         console.log(err);

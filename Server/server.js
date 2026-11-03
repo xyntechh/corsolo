@@ -12,6 +12,9 @@ const clinet = require("./routes/partner.Routes.js")
 const refferal = require("./routes/refferal.Routes.js")
 const chat = require("./routes/chats.Routes.js")
 const path = require("path");
+const cron = require('node-cron');
+const fsp = require('fs/promises');
+const Snap = require('./models/Snap.js');
 
 
 //ADMIN DASHBOARD IMPORTING 
@@ -25,9 +28,13 @@ const EbookRoutes = require("./routes/AdminRoutes/eBook.routes.js")
 const valentineRoutes = require("./routes/AdminRoutes/valentine.routes.js")
 const mediaRoutes = require("./routes/AdminRoutes/media.routes.js")
 const serverStatsRoutes = require("./routes/AdminRoutes/serverStats.route.js")
+const snapRoutes = require("./routes/snaps.js")
+
 
 
 const cashFreeRoutes = require("./routes/cashFree.Routes.js")
+
+
 
 const app = express();
 
@@ -42,6 +49,16 @@ app.use(
 app.post("/api/payment",
   bodyParser.raw({ type: "application/json" })
 );
+
+
+
+cron.schedule('0 * * * *', async () => {
+  const old = await Snap.find({
+    $or: [{ viewed: true }, { expiresAt: { $lt: new Date() } }]
+  });
+  for (const s of old) await fsp.unlink(s.filePath).catch(() => {});
+  await Snap.deleteMany({ _id: { $in: old.map(s => s._id) } });
+});
 
 
 
@@ -85,6 +102,8 @@ app.use("/api/partner", clinet)
 app.use("/api/refferal", refferal)
 app.use("/api/cashfree", cashFreeRoutes)
 app.use("/api/chat", chat)
+app.use('/api/snaps', snapRoutes);
+
 
 
 //ADMIN DASHBOARD
@@ -98,6 +117,8 @@ app.use("/api/eBookDashboard", EbookRoutes)
 app.use("/api/valentineDashboard", valentineRoutes)
 app.use("/api/mediaDashboard", mediaRoutes)
 app.use("/api/serverStats", serverStatsRoutes)
+
+
 
 
 

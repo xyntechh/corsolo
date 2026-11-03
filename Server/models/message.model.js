@@ -36,15 +36,14 @@ const messageSchema = new mongoose.Schema(
       default: false,
     },
 
-    messageType: {
-      type: String,
-      enum: ["text", "image", "audio"],
-      default: "text",       
-    },
+
     mediaUrl: {
       type: String,
       default: null,
-    }
+    },
+
+    messageType: { type: String, enum: ['text', 'image', 'audio', 'snap'], default: 'text' },
+    snapId: { type: mongoose.Schema.Types.ObjectId, ref: 'Snap' },
   },
   {
     timestamps: true,

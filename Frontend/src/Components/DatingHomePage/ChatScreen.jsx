@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Reply, Pencil, MoreVertical } from "lucide-react";
 import { socket } from "../../socket.js";
 import { useUser } from "../../Context/UserContext.jsx";
@@ -21,6 +21,7 @@ import {
   Send,
 } from "lucide-react";
 import axios from "axios";
+import ViewOnceSnap from "../../Components/ViewOnceSnap.jsx"; // apne folder ke hisaab se path
 
 function waveBarColor(i, total) {
   const t = i / Math.max(1, total - 1);
@@ -173,7 +174,9 @@ function MessageGroup({ group }) {
               onMouseLeave={() => setHoveredId(null)}
               className="relative text-sm text-neutral-100 leading-relaxed break-words w-fit max-w-full pr-1"
             >
-              {msg.messageType === "image" ? (
+              {msg.messageType === "snap" ? (
+                <ViewOnceSnap id={msg.snapId} isMe={isMe} />
+              ) : msg.messageType === "image" ? (
                 <img
                   src={msg.mediaUrl}
                   alt="sent image"
@@ -279,6 +282,7 @@ export default function ChatScreen({
             text: msg.message,
             messageType: msg.messageType || "text", // 👈 add karo
             mediaUrl: msg.mediaUrl || null,
+            snapId: msg.snapId || null, // 👈 add
           }));
 
           setMessagess(formatted);
@@ -384,6 +388,7 @@ export default function ChatScreen({
           messageType: msg.messageType || "text",
           mediaUrl: msg.mediaUrl || null,
           senderProfilePicture: msg.senderProfilePicture || null,
+          snapId: msg.snapId || null, // 👈 add
         },
       ]);
     };
@@ -556,12 +561,57 @@ export default function ChatScreen({
     setIsRecording(false);
   };
 
-
   //Temporarily closed image feature
   const temporarilyClosedImageFeature = () => {
     toast.error("Opps! Image feature is temporarily closed.");
   };
 
+  const uploadSnap = async (file) => {
+    if (!partnerId || !roomId) return toast.error("Chat abhi ready nahi hai");
+
+    const tempId = `temp-${Date.now()}`;
+    const previewUrl = URL.createObjectURL(file);
+    setPendingUploads((prev) => [
+      ...prev,
+      { id: tempId, type: "image", previewUrl },
+    ]);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("receiverId", partnerId);
+      formData.append("chatId", chatId);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/snaps`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }, // Content-Type khud mat do
+      );
+
+      if (res.data.success) {
+        socket.emit("sendMessage", {
+          roomId,
+          message: "",
+          messageType: "snap",
+          snapId: res.data.id,
+          senderName: user?.name,
+          senderId: user?._id,
+          chatId: chatId,
+          receiverId: partnerId,
+          receiverName: partnerName,
+          senderProfilePicture: user?.profilePicture,
+        });
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Snap bhejne mein error (max 5MB, jpg/png/webp)",
+      );
+    } finally {
+      setPendingUploads((prev) => prev.filter((p) => p.id !== tempId));
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
 
   return (
     <>
@@ -809,8 +859,8 @@ export default function ChatScreen({
                       <label className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                         <ImageIcon size={17} />
                         <input
-                         // type="file"
-                         // accept="image/*"
+                          // type="file"
+                          //  accept="image/*"
                           className="hidden"
                           // onChange={(e) => {
                           //  const file = e.target.files[0];
@@ -818,7 +868,15 @@ export default function ChatScreen({
                           //   e.target.value = "";
                           //  }}
 
-                          onClick={temporarilyClosedImageFeature}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          //  className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) uploadSnap(file);
+                            e.target.value = "";
+                          }}
+                          // onClick={temporarilyClosedImageFeature}
                         />
                       </label>
 
